@@ -6,13 +6,13 @@
   "source": { "type": "built-in" },
   "confidence": "high",
   "palette": {
-    "primary":   { "fillColor": "#f2f2f2", "strokeColor": "#555555" },
-    "success":   { "fillColor": "#ffffff", "strokeColor": "#555555" },
-    "warning":   { "fillColor": "#e6e6e6", "strokeColor": "#444444" },
-    "accent":    { "fillColor": "#eeeeee", "strokeColor": "#555555" },
-    "danger":    { "fillColor": "#dcdcdc", "strokeColor": "#555555" },
-    "neutral":   { "fillColor": "#fafafa", "strokeColor": "#777777" },
-    "secondary": { "fillColor": "#eaeaea", "strokeColor": "#555555" }
+    "primary":   { "fillColor": "#FFFFFF", "strokeColor": "#000000" },
+    "success":   { "fillColor": "#FFFFFF", "strokeColor": "#000000" },
+    "warning":   { "fillColor": "#FFFFFF", "strokeColor": "#000000" },
+    "accent":    { "fillColor": "#FFFFFF", "strokeColor": "#000000" },
+    "danger":    { "fillColor": "#FFFFFF", "strokeColor": "#000000" },
+    "neutral":   { "fillColor": "#FFFFFF", "strokeColor": "#000000" },
+    "secondary": { "fillColor": "#FFFFFF", "strokeColor": "#000000" }
   },
   "roles": {
     "service":  "primary",
@@ -38,7 +38,7 @@
     "titleBold": true
   },
   "edges": {
-    "style": "edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1",
+    "style": "edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontColor=#000000",
     "arrow": "endArrow=block;endFill=1",
     "dashedFor": []
   },

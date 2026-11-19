@@ -32,9 +32,9 @@ import sys
 from xml.sax.saxutils import escape
 
 DEFAULT_W, DEFAULT_H = 120, 60
-NODE_STYLE = "rounded=1;whiteSpace=wrap;html=1;fillColor=#f2f2f2;strokeColor=#555555;"
-EDGE_STYLE = "html=1;rounded=0;"
-GROUP_STYLE = ("rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;"
+NODE_STYLE = "rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;"
+EDGE_STYLE = "html=1;rounded=0;strokeColor=#000000;fontColor=#000000;"
+GROUP_STYLE = ("rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;"
                "verticalAlign=top;fontStyle=2;dashed=1;")
 # Group colours come from the skill's own palette (styles/built-in/default.json)
 # so there is a single source of truth, not a second list baked in here. When a
@@ -44,8 +44,7 @@ GROUP_STYLE = ("rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999
 # nodes are tinted. Disable with --mono.
 _PALETTE_ORDER = ["primary", "success", "accent", "secondary", "warning", "danger", "neutral"]
 _PALETTE_FILE = os.path.join(os.path.dirname(__file__), "..", "styles", "built-in", "default.json")
-_FALLBACK_PALETTE = [("#f2f2f2", "#555555"), ("#ffffff", "#555555"), ("#eeeeee", "#555555"),
-                     ("#eaeaea", "#555555"), ("#e6e6e6", "#444444"), ("#dcdcdc", "#555555")]
+_FALLBACK_PALETTE = [("#FFFFFF", "#000000")]
 
 
 def load_palette():
@@ -182,8 +181,8 @@ def layout(dot_src):
 
 
 def group_style(stroke):
-    """Container box styled with a group's colour (coloured border + title)."""
-    return (f"rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor={stroke};"
+    """Container box with a black border and title on a white background."""
+    return (f"rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor={stroke};"
             f"fontColor={stroke};verticalAlign=top;fontStyle=2;dashed=1;")
 
 
@@ -282,7 +281,7 @@ def page_cells(graph, height, pos, edge_pts, color=True):
             style = node["style"]                         # explicit style always wins
         elif color and nid in gpath:
             fill, stroke = gcolor(gpath[nid][0])          # tint styleless nodes by group
-            style = f"rounded=1;whiteSpace=wrap;html=1;fillColor={fill};strokeColor={stroke};"
+            style = f"rounded=1;whiteSpace=wrap;html=1;fillColor={fill};strokeColor={stroke};fontColor=#000000;"
         else:
             style = NODE_STYLE
         body = (f'style="{attr(style)}" vertex="1" parent="{attr(parent)}">\n'

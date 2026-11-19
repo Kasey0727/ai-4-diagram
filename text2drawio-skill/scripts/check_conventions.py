@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
-"""Check grayscale, vertical swimlanes, and consistent two-way decision edges."""
+"""Check pure black/white colors, vertical lanes, and consistent decision edges."""
 
 import argparse
-import re
 import sys
 import xml.etree.ElementTree as ET
 
 
-HEX_COLOR = re.compile(r"#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})(?![0-9a-fA-F])")
+ALLOWED_COLORS = {"#000000", "#FFFFFF"}
 BRANCH_KEYS = ("edgeStyle", "rounded", "orthogonalLoop", "jettySize",
                "strokeColor", "strokeWidth", "endArrow", "endSize")
 
@@ -41,23 +40,34 @@ def first_waypoint(edge):
         return None
 
 
-def is_gray(hex_value):
-    if len(hex_value) == 3:
-        channels = [int(c * 2, 16) for c in hex_value]
-    else:
-        channels = [int(hex_value[i:i + 2], 16) for i in (0, 2, 4)]
-    return len(set(channels)) == 1
-
-
 def inspect(path):
     root = ET.parse(path).getroot()
     cells = root.findall(".//mxCell")
     findings = []
 
     for cell in cells:
-        for color in HEX_COLOR.findall(cell.get("style") or ""):
-            if not is_gray(color):
-                findings.append(f"{cell.get('id')}: non-grayscale style color #{color}")
+        style = style_map(cell.get("style"))
+        for key, color in style.items():
+            if key.lower().endswith("color") and color.upper() not in ALLOWED_COLORS:
+                findings.append(f"{cell.get('id')}: {key} must be #000000 or #FFFFFF, got {color}")
+        if cell.get("vertex") == "1":
+            for key in ("fillColor", "strokeColor", "fontColor"):
+                if key not in style:
+                    findings.append(f"{cell.get('id')}: missing explicit {key}")
+        if cell.get("edge") == "1":
+            for key in (("strokeColor", "fontColor") if cell.get("value") else ("strokeColor",)):
+                if key not in style:
+                    findings.append(f"{cell.get('id')}: missing explicit {key}")
+        if cell.get("vertex") == "1" and cell.get("value"):
+            fill, font = style.get("fillColor"), style.get("fontColor", "#000000")
+            if fill and fill.upper() == font.upper():
+                findings.append(f"{cell.get('id')}: label color matches the fill")
+
+    for element in root.iter():
+        for key, color in element.attrib.items():
+            if key.lower().endswith("color") or key == "background":
+                if color.upper() not in ALLOWED_COLORS:
+                    findings.append(f"{element.tag}: {key} must be #000000 or #FFFFFF, got {color}")
 
     by_parent = {}
     for cell in cells:

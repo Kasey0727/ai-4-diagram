@@ -53,17 +53,17 @@ For non-trivial shapes, verify that draw.io supports the chosen `shape=mxgraph.*
 
 ```xml
 <!-- Rectangle / rounded box -->
-<mxCell id="2" value="Label" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f2f2f2;strokeColor=#555555;" vertex="1" parent="1">
+<mxCell id="2" value="Label" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;" vertex="1" parent="1">
   <mxGeometry x="100" y="100" width="160" height="60" as="geometry" />
 </mxCell>
 
 <!-- Cylinder (database) -->
-<mxCell id="3" value="DB" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
+<mxCell id="3" value="DB" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;" vertex="1" parent="1">
   <mxGeometry x="350" y="100" width="120" height="80" as="geometry" />
 </mxCell>
 
 <!-- Diamond (decision) -->
-<mxCell id="4" value="Check?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#e6e6e6;strokeColor=#444444;" vertex="1" parent="1">
+<mxCell id="4" value="Check?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;" vertex="1" parent="1">
   <mxGeometry x="100" y="220" width="160" height="80" as="geometry" />
 </mxCell>
 ```
@@ -85,14 +85,14 @@ For architecture diagrams with nested elements, use draw.io's parent-child conta
 
 ```xml
 <!-- Swimlane container -->
-<mxCell id="svc1" value="User Service" style="swimlane;startSize=30;fillColor=#fafafa;strokeColor=#aaaaaa;" vertex="1" parent="1">
+<mxCell id="svc1" value="User Service" style="swimlane;startSize=30;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;" vertex="1" parent="1">
   <mxGeometry x="100" y="100" width="300" height="200" as="geometry"/>
 </mxCell>
 <!-- Child inside container — coordinates relative to parent -->
-<mxCell id="api1" value="REST API" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="svc1">
+<mxCell id="api1" value="REST API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;" vertex="1" parent="svc1">
   <mxGeometry x="20" y="40" width="120" height="60" as="geometry"/>
 </mxCell>
-<mxCell id="db1" value="Database" style="shape=cylinder3;whiteSpace=wrap;html=1;" vertex="1" parent="svc1">
+<mxCell id="db1" value="Database" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;" vertex="1" parent="svc1">
   <mxGeometry x="160" y="40" width="120" height="60" as="geometry"/>
 </mxCell>
 ```
@@ -103,17 +103,17 @@ For architecture diagrams with nested elements, use draw.io's parent-child conta
 
 ```xml
 <!-- Directed arrow — always include rounded, orthogonalLoop, jettySize for clean routing -->
-<mxCell id="10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="2" target="3">
+<mxCell id="10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" edge="1" parent="1" source="2" target="3">
   <mxGeometry relative="1" as="geometry" />
 </mxCell>
 
 <!-- Arrow with label + explicit entry/exit points to control direction -->
-<mxCell id="11" value="HTTP/REST" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="2" target="4">
+<mxCell id="11" value="HTTP/REST" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontColor=#000000;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="2" target="4">
   <mxGeometry relative="1" as="geometry" />
 </mxCell>
 
 <!-- Arrow with waypoints — use when edge must route around other shapes -->
-<mxCell id="12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="3" target="5">
+<mxCell id="12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" edge="1" parent="1" source="3" target="5">
   <mxGeometry relative="1" as="geometry">
     <Array as="points">
       <mxPoint x="500" y="50" />
@@ -146,22 +146,20 @@ When multiple edges connect to the same shape, assign different entry/exit point
 
 **Rule:** if a shape has N connections on one side, space them evenly (e.g., 3 connections on bottom → exitX = 0.25, 0.5, 0.75)
 
-### Grayscale palette (fillColor / strokeColor)
+### Black-and-white palette (fillColor / strokeColor)
 
-Use only black, white, and gray values for this version. Keep all edge strokes the same gray; use node shape and labels to distinguish outcomes.
+Use exactly `#000000` and `#FFFFFF` for explicit colors. Keep all edge strokes black; use node shape and labels to distinguish outcomes. White fills with black text are the default. An exception node may use black fill with white text.
 
-| Role | fillColor | strokeColor |
-| --- | --- | --- |
-| Start/end | `#ffffff` | `#555555` |
-| Normal process | `#f2f2f2` | `#555555` |
-| Decision | `#e6e6e6` | `#444444` |
-| Exception process | `#dcdcdc` | `#555555` |
-| Lane background | `#fafafa` | `#aaaaaa` |
-| Edges/text | — | `#555555` / `#222222` |
+| Role | fillColor | strokeColor | fontColor |
+| --- | --- | --- | --- |
+| Start/end, process, decision | `#FFFFFF` | `#000000` | `#000000` |
+| Exception process, when emphasized | `#000000` | `#000000` | `#FFFFFF` |
+| Lane background | `#FFFFFF` | `#000000` | `#000000` |
+| Edges and edge labels | — | `#000000` | `#000000` |
 
 ### Legend
 
-In grayscale diagrams, avoid a color legend. Use shape and text labels to explain outcomes. Add a legend only if the diagram introduces another visual convention that a reader cannot infer from the labels.
+Avoid a color legend. Use shape and text labels to explain outcomes. Add a legend only if the diagram introduces another visual convention that a reader cannot infer from the labels.
 
 ### Layout tips
 
