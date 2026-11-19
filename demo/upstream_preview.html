@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<title>drawio-skill 上游版泳道图预览</title>
+<style>
+  html, body { margin: 0; height: 100%; font-family: system-ui, sans-serif; }
+  header { box-sizing: border-box; height: 48px; display: flex; align-items: center; gap: 16px; padding: 0 16px; background: #eff6ff; }
+  iframe { display: block; border: 0; width: 100%; height: calc(100% - 48px); }
+</style>
+<header><strong>订单创建与库存校验 · drawio-skill 上游版</strong><span id="status">正在连接 draw.io 编辑器…</span><a id="fallback" href="./order_stock_upstream.drawio" download hidden>下载原始 .drawio</a></header>
+<iframe id="editor" title="draw.io 编辑画布" src="https://embed.diagrams.net/?embed=1&proto=json&spin=1&libraries=1"></iframe>
+<script src="./order_stock_upstream_data.js"></script>
+<script>
+  const editor = document.querySelector('#editor');
+  const status = document.querySelector('#status');
+  const fallback = document.querySelector('#fallback');
+  const editorOrigin = 'https://embed.diagrams.net';
+  const timeout = setTimeout(() => {
+    status.textContent = '编辑器未响应。请确认能访问 embed.diagrams.net，或先下载 .drawio 文件。';
+    fallback.hidden = false;
+  }, 15000);
+  editor.addEventListener('error', () => {
+    clearTimeout(timeout);
+    status.textContent = '编辑器加载失败。';
+    fallback.hidden = false;
+  });
+  window.addEventListener('message', async (event) => {
+    if (event.origin !== editorOrigin || event.source !== editor.contentWindow) return;
+    let message;
+    try { message = typeof event.data === 'string' ? JSON.parse(event.data) : event.data; } catch { return; }
+    if (message.event === 'init') {
+      clearTimeout(timeout);
+      if (typeof window.DIAGRAM_XML !== 'string') {
+        status.textContent = '示例图数据未加载。';
+        fallback.hidden = false;
+        return;
+      }
+      status.textContent = '正在打开画布…';
+      editor.contentWindow.postMessage(JSON.stringify({action: 'load', xml: window.DIAGRAM_XML, title: '订单创建与库存校验-上游版.drawio'}), editorOrigin);
+    } else if (message.event === 'load') {
+      status.textContent = '画布已加载，可编辑';
+      fallback.hidden = false;
+    } else if (message.event === 'save') {
+      const url = URL.createObjectURL(new Blob([message.xml], {type: 'application/xml'}));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = '订单创建与库存校验-上游版.drawio';
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      status.textContent = '已导出到本地';
+    }
+  });
+</script>
+</html>

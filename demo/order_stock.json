@@ -1,0 +1,27 @@
+{
+  "title": "订单创建与库存校验",
+  "lanes": [
+    {"id": "client", "name": "客户端"},
+    {"id": "order", "name": "订单服务"},
+    {"id": "inventory", "name": "库存服务"}
+  ],
+  "steps": [
+    {"id": "submit", "lane": "client", "order": 1, "type": "start", "text": "提交订单"},
+    {"id": "validate", "lane": "order", "order": 2, "type": "action", "text": "校验订单"},
+    {"id": "query_stock", "lane": "inventory", "order": 3, "type": "action", "text": "查询库存"},
+    {"id": "stock_check", "lane": "order", "order": 4, "type": "decision", "text": "库存充足？"},
+    {"id": "create", "lane": "order", "order": 5, "type": "action", "text": "创建订单并返回成功"},
+    {"id": "success", "lane": "client", "order": 6, "type": "end", "text": "展示成功"},
+    {"id": "failure", "lane": "client", "order": 5, "type": "end", "text": "展示库存不足"}
+  ],
+  "flows": [
+    {"id": "submit_order", "from": "submit", "to": "validate", "label": "提交订单请求"},
+    {"id": "ask_stock", "from": "validate", "to": "query_stock", "label": "查询库存"},
+    {"id": "stock_result", "from": "query_stock", "to": "stock_check", "label": "库存结果"},
+    {"id": "in_stock", "from": "stock_check", "to": "create", "label": "是"},
+    {"id": "out_of_stock", "from": "stock_check", "to": "failure", "label": "否：返回库存不足"},
+    {"id": "created", "from": "create", "to": "success", "label": "订单创建成功"}
+  ],
+  "assumptions": ["订单校验不包含独立的失败分支；原需求未说明校验失败时的处理。"],
+  "questions": ["订单创建是否还需要支付或库存预占步骤？"]
+}
