@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>京小贝权益大卡系统交互泳道图</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, "PingFang SC", sans-serif; color: #000000; background: #FFFFFF; }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+    header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #000000; }
+    h1 { margin: 0; font-size: 17px; }
+    #status { margin-right: auto; font-size: 13px; }
+    button, .download { padding: 7px 11px; border: 1px solid #000000; border-radius: 4px; background: #FFFFFF; color: #000000; font: inherit; font-size: 13px; cursor: pointer; text-decoration: none; }
+    button:hover, .download:hover { background: #000000; color: #FFFFFF; }
+    main { min-height: 0; overflow: auto; }
+    #preview { width: 100%; padding: 16px; }
+    #preview img { display: block; width: min(100%, 1600px); height: auto; margin: 0 auto; border: 1px solid #000000; }
+    iframe { display: block; width: 100%; height: 100%; border: 0; }
+    details { border-top: 1px solid #000000; padding: 9px 16px; font-size: 13px; }
+    summary { cursor: pointer; }
+    details p { margin: 7px 0 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>京小贝权益大卡与金条卡片交互</h1>
+    <span id="status" role="status">PNG 预览已就绪</span>
+    <button id="open-editor" type="button">打开 draw.io 编辑器</button>
+    <button id="show-preview" type="button" hidden>返回 PNG 预览</button>
+    <a class="download" href="./jingxiaobei_rights.drawio" download>下载可编辑 .drawio</a>
+  </header>
+  <main>
+    <div id="preview"><img src="./jingxiaobei_rights.png" alt="四条竖向泳道的京小贝权益大卡系统交互流程图"></div>
+    <iframe id="editor" title="draw.io 编辑画布" hidden></iframe>
+  </main>
+  <details>
+    <summary>本次建图的假设与待确认项</summary>
+    <p>假设：进入对话页后由前端触发权益大卡加载；OPE 配置作为金条服务端查询素材的一部分；已激活与未激活人群在识别后进入同一权益处理流程。</p>
+    <p>待确认：query 的接收方与返回过程，以及借款/激活卡片的拉起方式。图中仅表达前端发起 query 后按权益信息选择对应卡片。</p>
+  </details>
+  <script src="./jingxiaobei_rights_data.js"></script>
+  <script>
+    const editor = document.querySelector('#editor');
+    const preview = document.querySelector('#preview');
+    const status = document.querySelector('#status');
+    const openButton = document.querySelector('#open-editor');
+    const previewButton = document.querySelector('#show-preview');
+    const editorOrigin = 'https://embed.diagrams.net';
+    let timeout;
+    let editorLoaded = false;
+
+    openButton.addEventListener('click', () => {
+      if (typeof window.JINGXIAOBEI_XML !== 'string') {
+        status.textContent = '图数据未加载，请下载 .drawio 文件。';
+        return;
+      }
+      preview.hidden = true;
+      editor.hidden = false;
+      openButton.hidden = true;
+      previewButton.hidden = false;
+      if (editorLoaded) {
+        status.textContent = '画布已加载；在编辑器中保存可导出本地 .drawio';
+        return;
+      }
+      status.textContent = '正在连接 draw.io 编辑器…';
+      if (!editor.src || editor.src === 'about:blank') {
+        editor.src = 'https://embed.diagrams.net/?embed=1&proto=json&spin=1&libraries=1';
+      }
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        status.textContent = '编辑器未响应；可返回 PNG 预览或下载 .drawio 文件。';
+      }, 15000);
+    });
+
+    previewButton.addEventListener('click', () => {
+      preview.hidden = false;
+      editor.hidden = true;
+      previewButton.hidden = true;
+      openButton.hidden = false;
+      status.textContent = 'PNG 预览已就绪';
+    });
+
+    editor.addEventListener('error', () => {
+      clearTimeout(timeout);
+      status.textContent = '编辑器加载失败；可返回 PNG 预览或下载 .drawio 文件。';
+    });
+
+    window.addEventListener('message', (event) => {
+      if (event.origin !== editorOrigin || event.source !== editor.contentWindow) return;
+      let message;
+      try { message = typeof event.data === 'string' ? JSON.parse(event.data) : event.data; } catch { return; }
+      if (message.event === 'init') {
+        clearTimeout(timeout);
+        status.textContent = '正在打开可编辑画布…';
+        editor.contentWindow.postMessage(JSON.stringify({
+          action: 'load', xml: window.JINGXIAOBEI_XML, title: '京小贝权益大卡系统交互.drawio'
+        }), editorOrigin);
+      } else if (message.event === 'load') {
+        clearTimeout(timeout);
+        editorLoaded = true;
+        status.textContent = '画布已加载；在编辑器中保存可导出本地 .drawio';
+      } else if (message.event === 'save' && typeof message.xml === 'string') {
+        const url = URL.createObjectURL(new Blob([message.xml], {type: 'application/xml'}));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = '京小贝权益大卡系统交互.drawio';
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        status.textContent = '已导出编辑结果到本地';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="drawio" version="26.0.0" type="device">
+  <diagram id="jingxiaobei-rights-test" name="京小贝权益大卡与金条卡片交互">
+    <mxGraphModel dx="1740" dy="2370" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1740" pageHeight="2370" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="pool" value="京小贝权益大卡与金条卡片交互" style="swimlane;html=1;horizontal=1;startSize=40;collapsible=0;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontStyle=1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="1660" height="2290" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-user" value="用户" style="swimlane;html=1;horizontal=1;startSize=40;collapsible=0;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontSize=14;" vertex="1" parent="pool">
+          <mxGeometry x="0" y="40" width="240" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-front" value="京小贝前端" style="swimlane;html=1;horizontal=1;startSize=40;collapsible=0;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontSize=14;" vertex="1" parent="pool">
+          <mxGeometry x="240" y="40" width="420" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-assistant" value="京小贝服务端" style="swimlane;html=1;horizontal=1;startSize=40;collapsible=0;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontSize=14;" vertex="1" parent="pool">
+          <mxGeometry x="660" y="40" width="350" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-gold" value="金条服务端" style="swimlane;html=1;horizontal=1;startSize=40;collapsible=0;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontSize=14;" vertex="1" parent="pool">
+          <mxGeometry x="1010" y="40" width="650" height="2250" as="geometry" />
+        </mxCell>
+        <mxCell id="user-enter" value="进入京小贝对话页" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=13;" vertex="1" parent="lane-user">
+          <mxGeometry x="35" y="80" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="front-open" value="打开对话页" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=14;" vertex="1" parent="lane-front">
+          <mxGeometry x="90" y="190" width="240" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="assistant-request" value="请求金条权益大卡接口" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=14;" vertex="1" parent="lane-assistant">
+          <mxGeometry x="50" y="300" width="250" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="gold-decision" value="是否已激活？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=14;" vertex="1" parent="lane-gold">
+          <mxGeometry x="220" y="420" width="210" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="gold-active" value="已激活人群" style="rounded=1;dashed=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=13;" vertex="1" parent="lane-gold">
+          <mxGeometry x="70" y="590" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gold-inactive" value="未激活人群" style="rounded=1;dashed=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=13;" vertex="1" parent="lane-gold">
+          <mxGeometry x="360" y="590" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gold-entitlements" value="查询账户已有权益&#xa;与 OPE 配置素材" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=14;" vertex="1" parent="lane-gold">
+          <mxGeometry x="190" y="720" width="270" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="gold-filter" value="过滤权益" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=14;" vertex="1" parent="lane-gold">
+          <mxGeometry x="210" y="850" width="230" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gold-sort" value="权益排序" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=14;" vertex="1" parent="lane-gold">
+          <mxGeometry x="210" y="960" width="230" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gold-copy" value="拼装卡片文案" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=14;" vertex="1" parent="lane-gold">
+          <mxGeometry x="210" y="1070" width="230" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gold-link" value="生成跳转链接" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=14;" vertex="1" parent="lane-gold">
+          <mxGeometry x="210" y="1180" width="230" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gold-return" value="返回统一卡片信息" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=14;" vertex="1" parent="lane-gold">
+          <mxGeometry x="190" y="1290" width="270" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="assistant-forward" value="转发统一卡片信息" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=14;" vertex="1" parent="lane-assistant">
+          <mxGeometry x="50" y="1420" width="250" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="front-render" value="渲染权益大卡" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=14;" vertex="1" parent="lane-front">
+          <mxGeometry x="90" y="1540" width="240" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="user-click" value="点击权益按钮" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=13;" vertex="1" parent="lane-user">
+          <mxGeometry x="35" y="1660" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="front-query" value="按权益信息发起 query" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=14;" vertex="1" parent="lane-front">
+          <mxGeometry x="90" y="1780" width="240" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="front-action" value="权益对应动作？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=14;" vertex="1" parent="lane-front">
+          <mxGeometry x="105" y="1900" width="210" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="front-loan-card" value="拉起金条借款卡片" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="lane-front">
+          <mxGeometry x="20" y="2070" width="180" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="front-activate-card" value="拉起金条激活卡片" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=12;" vertex="1" parent="lane-front">
+          <mxGeometry x="220" y="2070" width="180" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e-enter" value="进入页面" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endSize=8;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=12;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="user-enter" target="front-open">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="310" y="195" />
+              <mxPoint x="310" y="305" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-load" value="加载权益大卡" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endSize=8;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=12;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="front-open" target="assistant-request">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="680" y="305" />
+              <mxPoint x="680" y="415" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-card-api" value="权益大卡接口" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endSize=8;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=12;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="assistant-request" target="gold-decision">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1120" y="415" />
+              <mxPoint x="1120" y="470" />
+              <mxPoint x="1375" y="470" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-active" value="是" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endSize=8;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=12;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="gold-decision" target="gold-active">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1375" y="635" />
+              <mxPoint x="1230" y="635" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-inactive" value="否" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endSize=8;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=12;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="gold-decision" target="gold-inactive">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1375" y="635" />
+              <mxPoint x="1520" y="635" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-active-rights" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endSize=8;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=12;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.222222;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="gold-active" target="gold-entitlements">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1230" y="770" />
+              <mxPoint x="1300" y="770" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-inactive-rights" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endSize=8;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=12;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.777778;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="gold-inactive" target="gold-entitlements">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1520" y="770" />
+              <mxPoint x="1450" y="770" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-filter" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endSize=8;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=12;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="gold-entitlements" target="gold-filter">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-sort" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endSize=8;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=12;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="gold-filter" target="gold-sort">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-copy" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endSize=8;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=12;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="gold-sort" target="gold-copy">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-link" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endSize=8;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=12;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="gold-copy" target="gold-link">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-unified-card" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endSize=8;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=12;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="gold-link" target="gold-return">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-gold-return" value="统一卡片信息" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endSize=8;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=12;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="gold-return" target="assistant-forward">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1120" y="1405" />
+              <mxPoint x="1120" y="1535" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-to-front" value="卡片数据" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endSize=8;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=12;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="assistant-forward" target="front-render">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="680" y="1535" />
+              <mxPoint x="680" y="1655" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-render-click" value="展示权益大卡" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endSize=8;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=12;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="front-render" target="user-click">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="310" y="1655" />
+              <mxPoint x="310" y="1775" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-click-query" value="携带权益信息" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endSize=8;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=12;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="user-click" target="front-query">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="330" y="1775" />
+              <mxPoint x="330" y="1895" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-query-action" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endSize=8;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=12;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="front-query" target="front-action">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-loan" value="借款" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endSize=8;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=12;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="front-action" target="front-loan-card">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="490" y="2115" />
+              <mxPoint x="390" y="2115" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-activate" value="激活" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endSize=8;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=12;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="front-action" target="front-activate-card">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="490" y="2115" />
+              <mxPoint x="590" y="2115" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
