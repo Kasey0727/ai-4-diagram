@@ -11,11 +11,13 @@
     [hidden] { display: none !important; }
     html, body { width: 100%; height: 100%; margin: 0; }
     body { display: flex; flex-direction: column; overflow: hidden; font-size: 13px; }
-    header { display: flex; align-items: center; gap: 12px; min-height: 50px; padding: 8px 14px; border-bottom: 1px solid var(--line); background: var(--panel); }
-    .identity { display: flex; align-items: baseline; gap: 12px; min-width: 0; margin-right: auto; }
+    header { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px; min-height: 50px; padding: 8px 14px; border-bottom: 1px solid var(--line); background: var(--panel); }
+    .identity { grid-column: 1; display: flex; align-items: baseline; gap: 12px; min-width: 0; }
     h1 { overflow: hidden; margin: 0; font-size: 14px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
     .filename { color: var(--muted); white-space: nowrap; font-size: 12px; }
     .toolbar, .tool-group { display: flex; align-items: center; gap: 6px; }
+    #previewTools { grid-column: 2; justify-self: center; }
+    .toolbar { grid-column: 3; justify-self: end; }
     button { min-height: 30px; padding: 0 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel); color: var(--ink); font: inherit; white-space: nowrap; cursor: pointer; transition: background .12s, border-color .12s; }
     button:hover { background: #f0f2f5; border-color: #d3d8df; }
     button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -42,19 +44,20 @@
     .dialog-card h2 { margin: 0 0 8px; font-size: 16px; }
     .dialog-card p { margin: 0; color: var(--muted); line-height: 1.6; }
     .dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 20px; }
-    @media (max-width: 830px) { .filename { display: none; } header { flex-wrap: wrap; } .identity { flex-basis: 100%; } .toolbar { width: 100%; flex-wrap: wrap; } .hint { display: none; } }
+    @media (max-width: 830px) { .filename { display: none; } .identity { grid-column: 1 / -1; } #previewTools { grid-row: 2; } .toolbar { grid-row: 2; } .hint { display: none; } }
+    @media (max-width: 680px) { .toolbar { grid-column: 1 / -1; grid-row: 3; } }
   </style>
 </head>
 <body>
   <header>
     <div class="identity"><h1>京小贝权益大卡与金条卡片交互</h1><span class="filename">jingxiaobei_rights.drawio</span></div>
+    <div id="previewTools" class="tool-group" aria-label="预览缩放">
+      <button id="zoomOut" type="button" title="缩小" aria-label="缩小">−</button>
+      <span id="zoomLabel" aria-live="off">100%</span>
+      <button id="zoomIn" type="button" title="放大" aria-label="放大">+</button>
+      <button id="fit" type="button">适应</button>
+    </div>
     <div class="toolbar">
-      <div id="previewTools" class="tool-group" aria-label="预览缩放">
-        <button id="zoomOut" type="button" title="缩小" aria-label="缩小">−</button>
-        <span id="zoomLabel" aria-live="off">100%</span>
-        <button id="zoomIn" type="button" title="放大" aria-label="放大">+</button>
-        <button id="fit" type="button">适应</button>
-      </div>
       <button id="openEditor" type="button">打开 draw.io 编辑器</button>
       <button id="returnPreview" type="button" hidden>返回 SVG 预览</button>
       <button id="download" class="primary" type="button">下载 .drawio</button>

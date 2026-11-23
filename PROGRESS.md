@@ -12,6 +12,7 @@
 
 | 时间 | 类型 | 修改项与验证 | 提交 |
 | --- | --- | --- | --- |
+| 2026-11-23 18:26 | `fix` | 将京小贝预览 v2 顶部的缩小／百分比／放大／适应按钮组置于导航栏水平中央，标题和编辑／下载按钮保持左右位置；补充窄屏布局。HTML 结构、JavaScript 语法、Git diff 检查通过，本地页面 HTTP 返回 200；当前无可用浏览器实例，未完成目视验证。 | `fix(demo): center preview zoom controls` |
 | 2026-11-23 18:20 | `feat` | 京小贝 HTML 预览 v2 隐藏 draw.io 内置保存/退出按钮；顶部返回在检测到编辑变更时提供“应用修改并返回／放弃修改并返回／继续编辑”，顶部下载在编辑模式下获取实时 XML，并同步更新 SVG 预览。验证 JavaScript 语法、Git diff 检查、页面 HTTP 200；模拟放弃、应用、编辑中下载三条路径均通过。当前无可用浏览器实例，未完成实际点击验证。 | `feat(demo): unify editor actions in preview toolbar` |
 | 2026-11-23 17:24 | `fix` | 调整京小贝预览 v2：移除全屏按钮和右下角说明，将容器 UI 改为 XTeam 示例的浅灰点阵、细边框与蓝色主按钮；保存后通过 draw.io 嵌入协议导出最新 SVG 并替换预览，退出后可查看修改结果，下载使用最新 XML。HTML 脚本语法、Git diff 检查和模拟的保存→SVG 导出→退出→最新 XML 下载流程通过；当前无可用浏览器实例，未完成实际点击验证。 | `fix(demo): refresh SVG preview after drawio save` |
 | 2026-11-23 17:14 | `feat` | 新增京小贝 HTML 预览 v2，参考 XTeam 示例的紧凑工具栏和点阵画布，提供离线 SVG 预览、缩放平移、适应窗口、全屏、下载，并保留现有 draw.io 编辑器入口；旧 HTML 与原生泳道 XML 保留。SVG 仅含 `#000000` / `#FFFFFF` 且 XML 可解析；原图结构和约定检查为 0 错误，HTML 脚本语法通过。本地页面 HTTP 返回 200；当前无可用浏览器实例，未完成页面点击验证。 | `feat(demo): add SVG swimlane preview with editor controls` |
