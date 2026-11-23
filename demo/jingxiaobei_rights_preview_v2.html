@@ -21,6 +21,7 @@
     button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     button.primary { background: var(--accent); border-color: var(--accent); color: #ffffff; }
     button.primary:hover { background: #2560d4; border-color: #2560d4; }
+    button:disabled { opacity: .55; cursor: wait; }
     #zoomLabel { width: 46px; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; }
     #workspace { position: relative; flex: 1; min-height: 0; overflow: hidden; }
     #stage { position: absolute; inset: 0; overflow: hidden; cursor: grab; touch-action: none; background-color: var(--bg); background-image: radial-gradient(#dfe3e9 1px, transparent 1px); background-size: 20px 20px; }
@@ -36,6 +37,11 @@
     footer { min-height: 32px; padding: 6px 14px; border-top: 1px solid var(--line); background: var(--panel); color: var(--muted); }
     #toast { position: fixed; left: 50%; bottom: 48px; z-index: 10; padding: 7px 12px; border-radius: 7px; background: var(--ink); color: #ffffff; opacity: 0; transform: translate(-50%, 8px); transition: opacity .15s, transform .15s; pointer-events: none; }
     #toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .dialog-backdrop { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 20px; background: rgba(27,31,36,.36); }
+    .dialog-card { width: min(440px, 100%); padding: 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); box-shadow: 0 18px 48px rgba(27,31,36,.16); }
+    .dialog-card h2 { margin: 0 0 8px; font-size: 16px; }
+    .dialog-card p { margin: 0; color: var(--muted); line-height: 1.6; }
+    .dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 20px; }
     @media (max-width: 830px) { .filename { display: none; } header { flex-wrap: wrap; } .identity { flex-basis: 100%; } .toolbar { width: 100%; flex-wrap: wrap; } .hint { display: none; } }
   </style>
 </head>
@@ -68,6 +74,17 @@
   </main>
   <footer><span id="status" role="status">SVG 预览已就绪</span></footer>
   <div id="toast" role="status" aria-live="polite"></div>
+  <div id="returnDialog" class="dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="returnDialogTitle" hidden>
+    <div class="dialog-card">
+      <h2 id="returnDialogTitle">如何处理刚才的修改？</h2>
+      <p>应用修改会更新页面预览；要把图保存在本地，请点击“下载 .drawio”。</p>
+      <div class="dialog-actions">
+        <button id="continueEditing" type="button">继续编辑</button>
+        <button id="discardChanges" type="button">放弃修改并返回</button>
+        <button id="applyChanges" class="primary" type="button">应用修改并返回</button>
+      </div>
+    </div>
+  </div>
   <script src="./jingxiaobei_rights_data.js"></script>
   <script>
     (() => {
@@ -81,14 +98,19 @@
       const zoomLabel = document.querySelector('#zoomLabel');
       const openButton = document.querySelector('#openEditor');
       const returnButton = document.querySelector('#returnPreview');
+      const downloadButton = document.querySelector('#download');
       const previewTools = document.querySelector('#previewTools');
+      const returnDialog = document.querySelector('#returnDialog');
+      const applyButton = document.querySelector('#applyChanges');
+      const discardButton = document.querySelector('#discardChanges');
+      const continueButton = document.querySelector('#continueEditing');
       const editorOrigin = 'https://embed.diagrams.net';
       let currentXml = window.JINGXIAOBEI_XML;
       let scale = 1, tx = 0, ty = 0;
       let dragging = false, lastX = 0, lastY = 0;
-      let editorLoaded = false, editorExited = false, editorTimeout, previewTimeout, toastTimeout;
-      let savedVersion = 0, renderedVersion = 0, loadingVersion = 0;
-      let previewError = false;
+      let editorLoaded = false, dirty = false, changeVersion = 0;
+      let editorTimeout, previewTimeout, toastTimeout, requestId = 0;
+      let pending = null;
       let lastGoodPreview = diagram.src;
 
       function announce(message) {
@@ -129,35 +151,49 @@
         setTimeout(() => URL.revokeObjectURL(url), 1000);
         announce('已下载 .drawio');
       }
-      function releaseExitedEditor() {
-        if (!editorExited) return;
+      function resetEditor() {
+        clearTimeout(editorTimeout);
         editorLoaded = false;
-        editorExited = false;
+        dirty = false;
+        changeVersion = 0;
         editor.src = 'about:blank';
       }
-      function previewFailed(message) {
+      function setBusy(busy) {
+        returnButton.disabled = busy;
+        downloadButton.disabled = busy || (!editor.hidden && !editorLoaded);
+      }
+      function failPending(message) {
         clearTimeout(previewTimeout);
-        loadingVersion = 0;
-        previewError = true;
+        pending = null;
+        setBusy(false);
         status.textContent = message;
-        releaseExitedEditor();
       }
 
       diagram.addEventListener('load', () => {
         lastGoodPreview = diagram.src;
         if (!stage.hidden) fit();
-        if (loadingVersion) {
+        if (pending && pending.phase === 'image') {
           clearTimeout(previewTimeout);
-          renderedVersion = loadingVersion;
-          loadingVersion = 0;
-          previewError = false;
-          status.textContent = '已保存，SVG 预览已更新。';
-          releaseExitedEditor();
+          const completed = pending;
+          pending = null;
+          currentXml = completed.xml;
+          dirty = changeVersion !== completed.changeVersion;
+          setBusy(false);
+          if (completed.kind === 'apply' && !dirty) {
+            resetEditor();
+            showPreview('修改已应用到 SVG 预览；如需本地文件请下载 .drawio。');
+          } else {
+            status.textContent = dirty ? '编辑期间又有修改，请再次应用或下载。' : 'SVG 预览已更新，可继续编辑。';
+          }
         }
       });
       diagram.addEventListener('error', () => {
-        previewFailed('SVG 预览更新失败；已保存的 .drawio 仍可下载。');
-        if (diagram.src !== lastGoodPreview) diagram.src = lastGoodPreview;
+        if (pending) {
+          failPending('SVG 预览更新失败，请重试；原有预览仍可查看。');
+          if (diagram.src !== lastGoodPreview) diagram.src = lastGoodPreview;
+        } else {
+          status.textContent = 'SVG 预览加载失败；仍可下载 .drawio。';
+        }
       });
       if (diagram.complete && diagram.naturalWidth) fit();
       stage.addEventListener('pointerdown', event => {
@@ -190,23 +226,57 @@
       document.querySelector('#zoomIn').addEventListener('click', () => zoomAt(scale * 1.2));
       document.querySelector('#zoomOut').addEventListener('click', () => zoomAt(scale / 1.2));
       document.querySelector('#fit').addEventListener('click', fit);
-      document.querySelector('#download').addEventListener('click', () => {
-        if (typeof currentXml === 'string') downloadXml(currentXml);
-        else status.textContent = '图数据未加载，请直接下载原始 .drawio 文件。';
-      });
       window.addEventListener('resize', () => { if (!stage.hidden) fit(); });
 
-      function showPreview() {
+      function showPreview(message = 'SVG 预览已就绪') {
         editor.hidden = true;
         stage.hidden = false;
         notes.hidden = false;
         previewTools.hidden = false;
         returnButton.hidden = true;
         openButton.hidden = false;
+        setBusy(false);
         fit();
-        if (previewError) status.textContent = 'SVG 预览更新失败；已保存的 .drawio 仍可下载。';
-        else if (savedVersion > renderedVersion) status.textContent = '正在更新 SVG 预览…';
-        else status.textContent = savedVersion ? '已保存，SVG 预览已更新。' : 'SVG 预览已就绪';
+        status.textContent = message;
+      }
+      function closeReturnDialog() {
+        returnDialog.hidden = true;
+      }
+      function openReturnDialog() {
+        returnDialog.hidden = false;
+        applyButton.focus();
+      }
+      function sendExport(format, xml) {
+        const action = { action: 'export', format, requestId: pending.id };
+        if (xml) action.xml = xml;
+        editor.contentWindow.postMessage(JSON.stringify(action), editorOrigin);
+      }
+      function armPreviewTimeout() {
+        clearTimeout(previewTimeout);
+        const id = pending.id;
+        previewTimeout = setTimeout(() => {
+          if (pending && pending.id === id) failPending('编辑器导出超时，请重试；预览和本地文件尚未同步。');
+        }, 20000);
+      }
+      function beginSvgExport(kind, xml) {
+        if (typeof xml !== 'string' || !xml) {
+          failPending('未取得有效的图数据，请重试。');
+          return;
+        }
+        pending.xml = xml;
+        pending.phase = 'svg';
+        if (kind === 'download') downloadXml(xml);
+        status.textContent = '正在更新 SVG 预览…';
+        sendExport('svg', xml);
+        armPreviewTimeout();
+      }
+      function beginXmlExport(kind) {
+        if (pending || !editorLoaded) return;
+        pending = { id: ++requestId, kind, phase: 'xml', changeVersion };
+        setBusy(true);
+        status.textContent = kind === 'apply' ? '正在应用修改…' : '正在获取最新图数据…';
+        sendExport('xml');
+        armPreviewTimeout();
       }
 
       openButton.addEventListener('click', () => {
@@ -220,18 +290,44 @@
         previewTools.hidden = true;
         openButton.hidden = true;
         returnButton.hidden = false;
-        if (editorLoaded) {
-          status.textContent = '可在 draw.io 编辑；保存时下载修改后的 .drawio。';
-          return;
-        }
+        downloadButton.disabled = true;
         status.textContent = '正在连接 draw.io 编辑器…';
         if (!editor.src || editor.src === 'about:blank') {
-          editor.src = 'https://embed.diagrams.net/?embed=1&proto=json&spin=1&libraries=1';
+          editor.src = 'https://embed.diagrams.net/?embed=1&proto=json&spin=1&libraries=1&noSaveBtn=1&saveAndExit=0&noExitBtn=1';
         }
         clearTimeout(editorTimeout);
         editorTimeout = setTimeout(() => { status.textContent = '编辑器未响应；可返回 SVG 预览或下载 .drawio。'; }, 15000);
       });
-      returnButton.addEventListener('click', showPreview);
+      returnButton.addEventListener('click', () => {
+        if (pending) return;
+        if (editorLoaded && dirty) {
+          openReturnDialog();
+          return;
+        }
+        resetEditor();
+        showPreview();
+      });
+      continueButton.addEventListener('click', () => { closeReturnDialog(); returnButton.focus(); });
+      discardButton.addEventListener('click', () => {
+        closeReturnDialog();
+        resetEditor();
+        showPreview('已放弃本次修改，显示上一版预览。');
+      });
+      applyButton.addEventListener('click', () => { closeReturnDialog(); beginXmlExport('apply'); });
+      returnDialog.addEventListener('click', event => {
+        if (event.target === returnDialog) { closeReturnDialog(); returnButton.focus(); }
+      });
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && !returnDialog.hidden) { closeReturnDialog(); returnButton.focus(); }
+      });
+      downloadButton.addEventListener('click', () => {
+        if (editor.hidden) {
+          if (typeof currentXml === 'string') downloadXml(currentXml);
+          else status.textContent = '图数据未加载，请直接下载原始 .drawio 文件。';
+        } else {
+          beginXmlExport('download');
+        }
+      });
       editor.addEventListener('error', () => {
         clearTimeout(editorTimeout);
         status.textContent = '编辑器加载失败；可返回 SVG 预览或下载 .drawio。';
@@ -243,39 +339,38 @@
         if (message.event === 'init') {
           clearTimeout(editorTimeout);
           status.textContent = '正在打开可编辑画布…';
-          editor.contentWindow.postMessage(JSON.stringify({ action: 'load', xml: currentXml, title: '京小贝权益大卡系统交互.drawio' }), editorOrigin);
+          editor.contentWindow.postMessage(JSON.stringify({
+            action: 'load', xml: currentXml, title: '京小贝权益大卡系统交互.drawio', autosave: 1
+          }), editorOrigin);
         } else if (message.event === 'load') {
           clearTimeout(editorTimeout);
           editorLoaded = true;
-          status.textContent = '可在 draw.io 编辑；保存时下载修改后的 .drawio。';
-        } else if (message.event === 'save' && typeof message.xml === 'string') {
-          currentXml = message.xml;
-          const previewVersion = ++savedVersion;
-          previewError = false;
-          downloadXml(currentXml);
-          status.textContent = '已保存，正在更新 SVG 预览…';
-          editor.contentWindow.postMessage(JSON.stringify({
-            action: 'export', format: 'svg', xml: currentXml, previewVersion
-          }), editorOrigin);
-          clearTimeout(previewTimeout);
-          previewTimeout = setTimeout(() => previewFailed('SVG 导出超时；已保存的 .drawio 仍可下载。'), 20000);
-          if (message.exit) {
-            editorExited = true;
-            showPreview();
+          dirty = false;
+          changeVersion = 0;
+          setBusy(false);
+          status.textContent = '可在画布中编辑；返回预览时可选择应用或放弃修改。';
+        } else if (message.event === 'autosave' && editorLoaded && typeof message.xml === 'string') {
+          dirty = true;
+          changeVersion++;
+        } else if (message.event === 'save' && !pending && typeof message.xml === 'string') {
+          pending = { id: ++requestId, kind: message.exit ? 'apply' : 'download', phase: 'svg', changeVersion };
+          setBusy(true);
+          beginSvgExport(pending.kind, message.xml);
+        } else if (message.event === 'export' && pending) {
+          if (message.message && message.message.requestId !== undefined && message.message.requestId !== pending.id) return;
+          if (pending.phase === 'xml' && message.format === 'xml') {
+            beginSvgExport(pending.kind, message.xml);
+          } else if (pending.phase === 'svg' && message.format === 'svg') {
+            if (typeof message.data !== 'string' || !message.data.startsWith('data:image/svg+xml')) {
+              failPending('SVG 导出失败，请重试；预览和本地文件尚未同步。');
+              return;
+            }
+            pending.phase = 'image';
+            diagram.src = message.data;
           }
-        } else if (message.event === 'export' && message.format === 'svg') {
-          const previewVersion = message.message && message.message.previewVersion || savedVersion;
-          if (previewVersion !== savedVersion) return;
-          if (typeof message.data !== 'string' || !message.data.startsWith('data:image/svg+xml')) {
-            previewFailed('SVG 导出失败；已保存的 .drawio 仍可下载。');
-            return;
-          }
-          loadingVersion = previewVersion;
-          diagram.src = message.data;
         } else if (message.event === 'exit') {
-          editorExited = true;
-          showPreview();
-          if (savedVersion === renderedVersion || previewError) releaseExitedEditor();
+          if (dirty) openReturnDialog();
+          else { resetEditor(); showPreview(); }
         }
       });
     })();
