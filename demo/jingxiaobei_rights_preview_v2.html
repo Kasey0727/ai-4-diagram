@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>京小贝权益大卡系统交互泳道图</title>
+  <style>
+    :root { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; color: #000000; background: #FFFFFF; }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html, body { width: 100%; height: 100%; margin: 0; }
+    body { display: flex; flex-direction: column; overflow: hidden; font-size: 13px; }
+    header { display: flex; align-items: center; gap: 14px; min-height: 54px; padding: 8px 14px; border-bottom: 1px solid #000000; background: #FFFFFF; }
+    .identity { display: flex; align-items: baseline; gap: 12px; min-width: 0; margin-right: auto; }
+    h1 { overflow: hidden; margin: 0; font-size: 14px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+    .filename { white-space: nowrap; font-size: 12px; }
+    .toolbar, .tool-group { display: flex; align-items: center; gap: 6px; }
+    button { min-height: 32px; padding: 0 10px; border: 1px solid #000000; border-radius: 6px; background: #FFFFFF; color: #000000; font: inherit; white-space: nowrap; cursor: pointer; }
+    button:hover, button:focus-visible { background: #000000; color: #FFFFFF; }
+    button:focus-visible, summary:focus-visible { outline: 2px solid #000000; outline-offset: 2px; }
+    button.primary { background: #000000; color: #FFFFFF; }
+    button.primary:hover, button.primary:focus-visible { background: #FFFFFF; color: #000000; }
+    #zoomLabel { width: 46px; text-align: center; font-variant-numeric: tabular-nums; }
+    #workspace { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+    #stage { position: absolute; inset: 0; overflow: hidden; cursor: grab; touch-action: none; background-color: #FFFFFF; background-image: radial-gradient(#000000 0.6px, #FFFFFF 0.7px); background-size: 22px 22px; }
+    #stage.dragging { cursor: grabbing; }
+    #viewport { position: absolute; inset: 0; width: 0; height: 0; transform-origin: 0 0; will-change: transform; }
+    #diagram { display: block; width: 1662px; height: 2292px; max-width: none; background: #FFFFFF; pointer-events: none; user-select: none; }
+    #editor { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #FFFFFF; }
+    .hint { position: absolute; left: 14px; bottom: 14px; padding: 5px 9px; border: 1px solid #000000; border-radius: 6px; background: #FFFFFF; pointer-events: none; }
+    .notes { position: absolute; right: 14px; bottom: 14px; width: min(460px, calc(100% - 28px)); max-height: min(55vh, 370px); overflow: auto; border: 1px solid #000000; border-radius: 6px; background: #FFFFFF; }
+    .notes summary { padding: 5px 10px; font-weight: 600; cursor: pointer; }
+    .notes[open] summary { border-bottom: 1px solid #000000; }
+    .notes p { margin: 9px 10px; line-height: 1.55; }
+    footer { display: flex; justify-content: space-between; gap: 12px; min-height: 32px; padding: 6px 14px; border-top: 1px solid #000000; background: #FFFFFF; }
+    #toast { position: fixed; left: 50%; bottom: 48px; z-index: 10; padding: 7px 12px; border: 1px solid #000000; border-radius: 6px; background: #FFFFFF; opacity: 0; transform: translate(-50%, 8px); transition: opacity .15s, transform .15s; pointer-events: none; }
+    #toast.show { opacity: 1; transform: translate(-50%, 0); }
+    @media (max-width: 830px) { .filename, footer > span:last-child { display: none; } header { flex-wrap: wrap; } .identity { flex-basis: 100%; } .toolbar { width: 100%; flex-wrap: wrap; } .hint { display: none; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="identity"><h1>京小贝权益大卡与金条卡片交互</h1><span class="filename">jingxiaobei_rights.drawio</span></div>
+    <div class="toolbar">
+      <div id="previewTools" class="tool-group" aria-label="预览缩放">
+        <button id="zoomOut" type="button" title="缩小" aria-label="缩小">−</button>
+        <span id="zoomLabel" aria-live="off">100%</span>
+        <button id="zoomIn" type="button" title="放大" aria-label="放大">+</button>
+        <button id="fit" type="button">适应</button>
+      </div>
+      <button id="openEditor" type="button">打开 draw.io 编辑器</button>
+      <button id="returnPreview" type="button" hidden>返回 SVG 预览</button>
+      <button id="download" class="primary" type="button">下载 .drawio</button>
+      <button id="fullscreen" type="button">全屏</button>
+    </div>
+  </header>
+  <main id="workspace">
+    <div id="stage" aria-label="京小贝系统交互泳道图 SVG 预览">
+      <div id="viewport"><img id="diagram" src="./jingxiaobei_rights_preview.svg" alt="用户、京小贝前端、京小贝服务端、金条服务端的竖向系统交互泳道图" draggable="false"></div>
+      <div class="hint">拖拽平移 · 滚轮缩放 · 双击适应窗口</div>
+    </div>
+    <iframe id="editor" title="draw.io 编辑画布" hidden></iframe>
+    <details id="notes" class="notes">
+      <summary>本次建图的假设与待确认项</summary>
+      <p>假设：进入对话页后由前端触发权益大卡加载；OPE 配置作为金条服务端查询素材的一部分；已激活与未激活人群在识别后进入同一权益处理流程。</p>
+      <p>待确认：query 的接收方与返回过程，以及借款/激活卡片的拉起方式。图中仅表达前端发起 query 后按权益信息选择对应卡片。</p>
+    </details>
+  </main>
+  <footer><span id="status" role="status">SVG 预览已就绪</span><span>原生 .drawio · 黑白竖向泳道</span></footer>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="./jingxiaobei_rights_data.js"></script>
+  <script>
+    (() => {
+      const stage = document.querySelector('#stage');
+      const viewport = document.querySelector('#viewport');
+      const diagram = document.querySelector('#diagram');
+      const editor = document.querySelector('#editor');
+      const notes = document.querySelector('#notes');
+      const status = document.querySelector('#status');
+      const toast = document.querySelector('#toast');
+      const zoomLabel = document.querySelector('#zoomLabel');
+      const openButton = document.querySelector('#openEditor');
+      const returnButton = document.querySelector('#returnPreview');
+      const previewTools = document.querySelector('#previewTools');
+      const editorOrigin = 'https://embed.diagrams.net';
+      let currentXml = window.JINGXIAOBEI_XML;
+      let scale = 1, tx = 0, ty = 0;
+      let dragging = false, lastX = 0, lastY = 0;
+      let editorLoaded = false, editorTimeout, toastTimeout;
+      let edited = false;
+
+      function announce(message) {
+        toast.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => toast.classList.remove('show'), 1800);
+      }
+      function applyTransform() {
+        viewport.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+        zoomLabel.textContent = `${Math.round(scale * 100)}%`;
+      }
+      function fit() {
+        if (!diagram.complete || !diagram.naturalWidth) return;
+        const width = diagram.naturalWidth;
+        const height = diagram.naturalHeight;
+        const padding = 36;
+        scale = Math.max(0.05, Math.min(3, (stage.clientWidth - padding * 2) / width, (stage.clientHeight - padding * 2) / height));
+        tx = (stage.clientWidth - width * scale) / 2;
+        ty = (stage.clientHeight - height * scale) / 2;
+        applyTransform();
+      }
+      function zoomAt(next, x = stage.clientWidth / 2, y = stage.clientHeight / 2) {
+        next = Math.max(0.05, Math.min(8, next));
+        tx = x - (x - tx) * next / scale;
+        ty = y - (y - ty) * next / scale;
+        scale = next;
+        applyTransform();
+      }
+      function downloadXml(xml) {
+        const url = URL.createObjectURL(new Blob([xml], { type: 'application/xml;charset=utf-8' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = '京小贝权益大卡系统交互.drawio';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        announce('已下载 .drawio');
+      }
+
+      diagram.addEventListener('load', fit);
+      diagram.addEventListener('error', () => { status.textContent = 'SVG 预览加载失败；仍可下载 .drawio。'; });
+      if (diagram.complete && diagram.naturalWidth) fit();
+      stage.addEventListener('pointerdown', event => {
+        if (event.button !== 0) return;
+        dragging = true;
+        lastX = event.clientX; lastY = event.clientY;
+        stage.classList.add('dragging');
+        stage.setPointerCapture(event.pointerId);
+      });
+      stage.addEventListener('pointermove', event => {
+        if (!dragging) return;
+        tx += event.clientX - lastX;
+        ty += event.clientY - lastY;
+        lastX = event.clientX; lastY = event.clientY;
+        applyTransform();
+      });
+      function endPan(event) {
+        dragging = false;
+        stage.classList.remove('dragging');
+        if (stage.hasPointerCapture(event.pointerId)) stage.releasePointerCapture(event.pointerId);
+      }
+      stage.addEventListener('pointerup', endPan);
+      stage.addEventListener('pointercancel', endPan);
+      stage.addEventListener('wheel', event => {
+        event.preventDefault();
+        const box = stage.getBoundingClientRect();
+        zoomAt(scale * Math.pow(1.0015, -event.deltaY), event.clientX - box.left, event.clientY - box.top);
+      }, { passive: false });
+      stage.addEventListener('dblclick', fit);
+      document.querySelector('#zoomIn').addEventListener('click', () => zoomAt(scale * 1.2));
+      document.querySelector('#zoomOut').addEventListener('click', () => zoomAt(scale / 1.2));
+      document.querySelector('#fit').addEventListener('click', fit);
+      document.querySelector('#download').addEventListener('click', () => {
+        if (typeof currentXml === 'string') downloadXml(currentXml);
+        else status.textContent = '图数据未加载，请直接下载原始 .drawio 文件。';
+      });
+      document.querySelector('#fullscreen').addEventListener('click', () => {
+        if (document.fullscreenElement) document.exitFullscreen();
+        else document.querySelector('#workspace').requestFullscreen();
+      });
+      window.addEventListener('resize', () => { if (!stage.hidden) fit(); });
+      document.addEventListener('fullscreenchange', () => { if (!stage.hidden) setTimeout(fit, 60); });
+
+      openButton.addEventListener('click', () => {
+        if (typeof currentXml !== 'string') {
+          status.textContent = '图数据未加载，无法打开编辑器。';
+          return;
+        }
+        stage.hidden = true;
+        notes.hidden = true;
+        editor.hidden = false;
+        previewTools.hidden = true;
+        openButton.hidden = true;
+        returnButton.hidden = false;
+        if (editorLoaded) {
+          status.textContent = '可在 draw.io 编辑；保存时下载修改后的 .drawio。';
+          return;
+        }
+        status.textContent = '正在连接 draw.io 编辑器…';
+        if (!editor.src || editor.src === 'about:blank') {
+          editor.src = 'https://embed.diagrams.net/?embed=1&proto=json&spin=1&libraries=1';
+        }
+        clearTimeout(editorTimeout);
+        editorTimeout = setTimeout(() => { status.textContent = '编辑器未响应；可返回 SVG 预览或下载 .drawio。'; }, 15000);
+      });
+      returnButton.addEventListener('click', () => {
+        editor.hidden = true;
+        stage.hidden = false;
+        notes.hidden = false;
+        previewTools.hidden = false;
+        returnButton.hidden = true;
+        openButton.hidden = false;
+        fit();
+        status.textContent = edited ? 'SVG 展示原始版本；已编辑的内容请查看导出的 .drawio。' : 'SVG 预览已就绪';
+      });
+      editor.addEventListener('error', () => {
+        clearTimeout(editorTimeout);
+        status.textContent = '编辑器加载失败；可返回 SVG 预览或下载 .drawio。';
+      });
+      window.addEventListener('message', event => {
+        if (event.origin !== editorOrigin || event.source !== editor.contentWindow) return;
+        let message;
+        try { message = typeof event.data === 'string' ? JSON.parse(event.data) : event.data; } catch { return; }
+        if (message.event === 'init') {
+          clearTimeout(editorTimeout);
+          status.textContent = '正在打开可编辑画布…';
+          editor.contentWindow.postMessage(JSON.stringify({ action: 'load', xml: currentXml, title: '京小贝权益大卡系统交互.drawio' }), editorOrigin);
+        } else if (message.event === 'load') {
+          clearTimeout(editorTimeout);
+          editorLoaded = true;
+          status.textContent = '可在 draw.io 编辑；保存时下载修改后的 .drawio。';
+        } else if (message.event === 'save' && typeof message.xml === 'string') {
+          currentXml = message.xml;
+          edited = true;
+          downloadXml(currentXml);
+          status.textContent = '修改后的 .drawio 已下载到本地。';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
