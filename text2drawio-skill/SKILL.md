@@ -1,16 +1,16 @@
 ---
 name: text2drawio-skill
-description: Turn a natural-language request into an editable native .drawio flowchart or system interaction diagram. Use vertical swimlane columns, only black and white, consistent decision branches, structural validation, and PNG visual review.
+description: Turn natural-language requirements into editable native .drawio system interaction diagrams, then build a fixed HTML/SVG viewer for XTeam preview and file-backed edits. Use vertical swimlane columns, black-and-white diagrams, consistent decision branches, structural validation, and PNG visual review.
 ---
 
 # Natural language to editable draw.io
 
-`text2drawio-skill` is adapted from Agents365-ai/drawio-skill at commit `6550495129d9a42eff7e71434d15bfc9846b6202` (MIT; see `LICENSE`). Its original Python helpers are retained, with local black-and-white defaults in `autolayout.py`. `export_png.py` and `check_conventions.py` are local helpers. The agent plans and writes the diagram; these scripts do not interpret natural language or inspect pixels on their own.
+`text2drawio-skill` is adapted from Agents365-ai/drawio-skill at commit `6550495129d9a42eff7e71434d15bfc9846b6202` (MIT; see `LICENSE`). The agent plans and writes native diagram XML. Scripts validate/export it, render a fixed viewer template, and persist browser edits. They do not interpret natural language or inspect pixels on their own.
 
 ## Requirements
 
 - Python 3 for the bundled scripts.
-- draw.io desktop CLI for PNG export. `scripts/drawio_cli.py` resolves common executable names and install paths. If unavailable, provide the validated `.drawio` and state that visual self-review could not run.
+- draw.io desktop CLI for PNG and initial SVG export. `scripts/drawio_cli.py` resolves common executable names and install paths. If unavailable, provide the validated `.drawio` and state that visual self-review could not run. A previously rendered SVG may be supplied to `build_preview.py --svg` only when it corresponds to the final XML.
 - Graphviz `dot` only if using optional `scripts/autolayout.py` for a large generic graph. Its grouped layout is not a substitute for hand-authored swimlane containment.
 - An image viewing capability in the host agent to inspect the exported PNG. Never claim visual review or repair if the host cannot read the PNG.
 
@@ -23,6 +23,13 @@ description: Turn a natural-language request into an editable native .drawio flo
 5. Run `python3 scripts/validate.py diagram.drawio --score` and `python3 scripts/check_conventions.py diagram.drawio`. Fix errors before preview. Treat geometry warnings as review prompts: draw.io computes many edge paths only at render time.
 6. Run `python3 scripts/export_png.py diagram.drawio -o diagram.preview.png` to export a draft without embedded XML. Open the PNG with the host's image viewing tool and check lane orientation, pure black-and-white palette, the branch junction and labels, overlapping shapes, clipped text, and edges crossing unrelated shapes. If multiple edges stack at a node boundary, run `python3 scripts/edgeports.py diagram.drawio -o diagram.routed.drawio`, then inspect the result. Do not run it on a deliberately shared decision port; it preserves manually pinned ports.
 7. If defects remain, edit the XML, validate, export, and inspect again. Make at most **two automatic visual repair rounds** after the initial draft. Report any remaining defects plainly. If PNG export or image inspection is unavailable, do not silently count the missing check as successful.
-8. Show the preview and editable `.drawio` to the user. Apply up to **five user-feedback rounds** in the current creation cycle. For each round, change only affected cells where practical, then validate and preview again. Keep the round count in the conversation; no bundled script enforces it. After the fifth round, deliver the latest file and describe any remaining requested refinement.
+8. Build the HTML/SVG preview from the final XML. Keep generated content in the XML and optional assumptions/questions JSON; never author a one-off HTML page. For example:
 
-The `.drawio` XML is the editable deliverable. The preview PNG is for review. Do not present an exported PNG as the only editable source.
+   ```bash
+   python3 scripts/build_preview.py diagram.drawio --output-dir output --title "系统交互图" --notes-json notes.json
+   ```
+
+   `notes.json` has `assumptions` and `questions` string arrays. The build produces `diagram.drawio`, `diagram.preview.svg`, and `diagram.html`. Read [XTeam delivery](references/xteam-delivery.md) for hosting and writeback.
+9. Show the preview and editable `.drawio` to the user. Apply up to **five user-feedback rounds** in the current creation cycle. For each round, change only affected cells where practical, then validate and preview again. Keep the round count in the conversation; no bundled script enforces it. After the fifth round, deliver the latest file and describe any remaining requested refinement.
+
+The `.drawio` XML is the editable source of truth. The PNG is for agent review. The SVG/HTML pair is the fixed-code user preview. Browser edits must be POSTed to the workspace service before reporting that they were saved.

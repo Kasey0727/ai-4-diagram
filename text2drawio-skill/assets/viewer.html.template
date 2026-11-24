@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>{{TITLE}}</title>
+  <style>
+    :root { --bg:#f6f7f9; --panel:#fff; --line:#e3e6eb; --ink:#1b1f24; --muted:#6b7280; --accent:#2f6feb; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif; color:var(--ink); background:var(--bg); }
+    * { box-sizing:border-box; }
+    [hidden] { display:none !important; }
+    html,body { width:100%; height:100%; margin:0; }
+    body { display:flex; flex-direction:column; overflow:hidden; font-size:13px; }
+    header { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:12px; min-height:50px; padding:8px 14px; border-bottom:1px solid var(--line); background:var(--panel); }
+    .identity { grid-column:1; display:flex; align-items:baseline; gap:12px; min-width:0; overflow:hidden; }
+    h1,.filename { flex:0 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    h1 { margin:0; font-size:14px; font-weight:650; }
+    .filename { color:var(--muted); font-size:12px; }
+    .group,.toolbar { display:flex; align-items:center; gap:6px; }
+    #previewTools { grid-column:2; justify-self:center; }
+    .toolbar { grid-column:3; justify-self:end; }
+    button { min-height:30px; padding:0 10px; border:1px solid var(--line); border-radius:7px; background:var(--panel); color:var(--ink); font:inherit; white-space:nowrap; cursor:pointer; }
+    button:hover { background:#f0f2f5; }
+    button:focus-visible,summary:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+    button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+    button:disabled { opacity:.55; cursor:wait; }
+    #zoomLabel { width:46px; text-align:center; color:var(--muted); font-variant-numeric:tabular-nums; }
+    #workspace { position:relative; flex:1; min-height:0; overflow:hidden; }
+    #stage { position:absolute; inset:0; overflow:hidden; cursor:grab; touch-action:none; background-color:var(--bg); background-image:radial-gradient(#dfe3e9 1px,transparent 1px); background-size:20px 20px; }
+    #stage.dragging { cursor:grabbing; }
+    #viewport { position:absolute; left:0; top:0; transform-origin:0 0; will-change:transform; }
+    #diagram { display:block; max-width:none; background:#fff; pointer-events:none; user-select:none; }
+    #editor { position:absolute; inset:0; width:100%; height:100%; border:0; background:#fff; }
+    .hint { position:absolute; left:14px; bottom:14px; padding:4px 8px; border:1px solid var(--line); border-radius:6px; background:rgba(255,255,255,.9); color:var(--muted); pointer-events:none; }
+    .notes { position:absolute; right:14px; bottom:14px; width:min(460px,calc(100% - 28px)); max-height:min(55vh,370px); overflow:auto; border:1px solid var(--line); border-radius:6px; background:var(--panel); }
+    .notes summary { padding:5px 10px; font-weight:600; cursor:pointer; }
+    .notes[open] summary { border-bottom:1px solid var(--line); }
+    .notes ul { margin:8px 10px 10px; padding-left:20px; line-height:1.6; }
+    footer { min-height:32px; padding:6px 14px; border-top:1px solid var(--line); background:var(--panel); color:var(--muted); }
+    #toast { position:fixed; left:50%; bottom:48px; z-index:10; padding:7px 12px; border-radius:7px; background:var(--ink); color:#fff; opacity:0; transform:translate(-50%,8px); transition:opacity .15s,transform .15s; pointer-events:none; }
+    #toast.show { opacity:1; transform:translate(-50%,0); }
+    .backdrop { position:fixed; inset:0; z-index:20; display:grid; place-items:center; padding:20px; background:rgba(27,31,36,.36); }
+    .dialog { width:min(440px,100%); padding:20px; border:1px solid var(--line); border-radius:12px; background:var(--panel); box-shadow:0 18px 48px rgba(27,31,36,.16); }
+    .dialog h2 { margin:0 0 8px; font-size:16px; }
+    .dialog p { margin:0; color:var(--muted); line-height:1.6; }
+    .actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; margin-top:20px; }
+    @media (max-width:760px) { header { display:flex; flex-wrap:nowrap; gap:8px; overflow-x:auto; overflow-y:hidden; } .identity { flex:1 1 0; gap:0; } .filename { display:none; } #previewTools,.toolbar { flex:0 0 auto; } .hint { display:none; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="identity"><h1>{{TITLE}}</h1><span class="filename">{{FILENAME}}</span></div>
+    <div id="previewTools" class="group" aria-label="预览缩放">
+      <button id="zoomOut" type="button" aria-label="缩小">−</button><span id="zoomLabel">100%</span><button id="zoomIn" type="button" aria-label="放大">+</button><button id="fit" type="button">适应</button>
+    </div>
+    <div class="toolbar"><button id="openEditor" type="button">编辑</button><button id="returnPreview" type="button" hidden>预览</button><button id="download" class="primary" type="button">下载</button></div>
+  </header>
+  <main id="workspace">
+    <div id="stage" aria-label="系统交互泳道图 SVG 预览"><div id="viewport"><img id="diagram" src="./{{SVG_FILENAME}}" alt="系统交互泳道图" draggable="false"></div><div class="hint">拖拽平移 · 滚轮缩放 · 双击适应窗口</div></div>
+    <iframe id="editor" title="draw.io 编辑画布" hidden></iframe>
+    <details id="notes" class="notes"><summary>本次建图的假设与待确认项</summary><ul id="noteList"></ul></details>
+  </main>
+  <footer><span id="status" role="status">正在加载 SVG 预览…</span></footer>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <div id="returnDialog" class="backdrop" role="dialog" aria-modal="true" aria-labelledby="dialogTitle" hidden>
+    <div class="dialog"><h2 id="dialogTitle">如何处理刚才的修改？</h2><p>应用修改会写回工作区并更新预览；也可以放弃修改返回。</p><div class="actions"><button id="continueEditing" type="button">继续编辑</button><button id="discardChanges" type="button">放弃修改并返回</button><button id="applyChanges" class="primary" type="button">应用修改并返回</button></div></div>
+  </div>
+  <script>
+  (() => {
+    const initialXml = {{XML_JSON}};
+    const filename = {{FILENAME_JSON}};
+    const initialRevision = {{REVISION_JSON}};
+    const notes = {{NOTES_JSON}};
+    const $ = selector => document.querySelector(selector);
+    const stage = $('#stage'), viewport = $('#viewport'), diagram = $('#diagram'), editor = $('#editor');
+    const status = $('#status'), dialog = $('#returnDialog'), download = $('#download');
+    const editorOrigin = 'https://embed.diagrams.net';
+    let currentXml = initialXml, currentRevision = initialRevision;
+    let editorLoaded = false, dirty = false, changeVersion = 0, pending = null, requestId = 0;
+    let scale = 1, tx = 0, ty = 0, dragging = false, lastX = 0, lastY = 0;
+    let exportTimer, editorTimer, toastTimer;
+
+    for (const [heading, values] of [['假设', notes.assumptions || []], ['待确认', notes.questions || []]]) {
+      for (const value of values) {
+        const item = document.createElement('li');
+        item.textContent = `${heading}：${value}`;
+        $('#noteList').appendChild(item);
+      }
+    }
+    if (!$('#noteList').children.length) $('#notes').hidden = true;
+    function notify(message) {
+      $('#toast').textContent = message;
+      $('#toast').classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => $('#toast').classList.remove('show'), 1800);
+    }
+    function transform() {
+      viewport.style.transform = `translate(${tx}px,${ty}px) scale(${scale})`;
+      $('#zoomLabel').textContent = `${Math.round(scale * 100)}%`;
+    }
+    function fit() {
+      if (!diagram.naturalWidth) return;
+      const width = diagram.naturalWidth, height = diagram.naturalHeight, padding = 36;
+      scale = Math.max(.05, Math.min(3, (stage.clientWidth - padding * 2) / width, (stage.clientHeight - padding * 2) / height));
+      tx = (stage.clientWidth - width * scale) / 2;
+      ty = (stage.clientHeight - height * scale) / 2;
+      transform();
+    }
+    function zoom(next, x = stage.clientWidth / 2, y = stage.clientHeight / 2) {
+      next = Math.max(.05, Math.min(8, next));
+      tx = x - (x - tx) * next / scale;
+      ty = y - (y - ty) * next / scale;
+      scale = next;
+      transform();
+    }
+    function showPreview(message = 'SVG 预览已就绪') {
+      editor.hidden = true; stage.hidden = false; $('#notes').hidden = !$('#noteList').children.length;
+      $('#previewTools').hidden = false; $('#returnPreview').hidden = true; $('#openEditor').hidden = false;
+      download.disabled = false; status.textContent = message; fit();
+    }
+    function resetEditor() {
+      clearTimeout(editorTimer); editor.src = 'about:blank'; editorLoaded = false; dirty = false; changeVersion = 0;
+    }
+    function busy(value) {
+      $('#returnPreview').disabled = value;
+      download.disabled = value || (!editor.hidden && !editorLoaded);
+    }
+    function fail(message) {
+      clearTimeout(exportTimer); pending = null; busy(false); status.textContent = message;
+      notify(message);
+    }
+    function downloadXml(xml) {
+      const url = URL.createObjectURL(new Blob([xml], {type:'application/xml;charset=utf-8'}));
+      const link = document.createElement('a'); link.href = url; link.download = filename;
+      document.body.appendChild(link); link.click(); link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000); notify('已下载 .drawio');
+    }
+    async function refreshFromDisk() {
+      try {
+        const response = await fetch('./api/diagram', {cache:'no-store'});
+        if (!response.ok) throw new Error('API unavailable');
+        const data = await response.json();
+        currentXml = data.xml; currentRevision = data.revision;
+        diagram.src = `./{{SVG_FILENAME}}?revision=${encodeURIComponent(currentRevision)}`;
+      } catch { status.textContent = '静态预览已就绪；写回服务未连接，编辑后请下载本地文件。'; }
+    }
+    async function persist(xml, svgData, kind, version) {
+      try {
+        const response = await fetch('./api/diagram', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({baseRevision:currentRevision, xml, svg:svgData})
+        });
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error || `HTTP ${response.status}`);
+        currentXml = xml; currentRevision = body.revision;
+        diagram.src = `./{{SVG_FILENAME}}?revision=${encodeURIComponent(currentRevision)}`;
+        await new Promise((resolve, reject) => {
+          if (diagram.complete && diagram.naturalWidth) { resolve(); return; }
+          diagram.addEventListener('load', resolve, {once:true});
+          diagram.addEventListener('error', reject, {once:true});
+        });
+        dirty = version !== changeVersion;
+        pending = null; busy(false);
+        if (kind === 'download') downloadXml(xml);
+        if (kind === 'apply' && !dirty) { resetEditor(); showPreview('修改已写回工作区并更新 SVG 预览。'); }
+        else status.textContent = dirty ? '编辑期间又有修改，请再次应用或下载。' : '修改已写回工作区，可继续编辑。';
+      } catch (error) {
+        if (kind === 'download') downloadXml(xml);
+        fail(`写回失败：${error.message}。修改仍在编辑器中，可下载本地文件。`);
+      }
+    }
+    function sendExport(format, xml) {
+      const action = {action:'export', format, requestId:pending.id};
+      if (xml) action.xml = xml;
+      editor.contentWindow.postMessage(JSON.stringify(action), editorOrigin);
+    }
+    function armTimeout() {
+      clearTimeout(exportTimer);
+      const id = pending.id;
+      exportTimer = setTimeout(() => { if (pending && pending.id === id) fail('编辑器导出超时，请重试。'); }, 20000);
+    }
+    function beginExport(kind) {
+      if (pending || !editorLoaded) return;
+      pending = {id:++requestId, kind, phase:'xml', version:changeVersion};
+      busy(true); status.textContent = '正在取得最新图数据…'; sendExport('xml'); armTimeout();
+    }
+    diagram.addEventListener('load', () => { if (!stage.hidden) fit(); status.textContent = 'SVG 预览已就绪'; });
+    diagram.addEventListener('error', () => { status.textContent = 'SVG 加载失败；可下载原生 .drawio。'; });
+    if (diagram.complete && diagram.naturalWidth) fit();
+    refreshFromDisk();
+    stage.addEventListener('pointerdown', event => {
+      if (event.button !== 0) return;
+      dragging = true; lastX = event.clientX; lastY = event.clientY;
+      stage.classList.add('dragging'); stage.setPointerCapture(event.pointerId);
+    });
+    stage.addEventListener('pointermove', event => {
+      if (!dragging) return;
+      tx += event.clientX - lastX; ty += event.clientY - lastY;
+      lastX = event.clientX; lastY = event.clientY; transform();
+    });
+    function endPan(event) {
+      dragging = false; stage.classList.remove('dragging');
+      if (stage.hasPointerCapture(event.pointerId)) stage.releasePointerCapture(event.pointerId);
+    }
+    stage.addEventListener('pointerup', endPan);
+    stage.addEventListener('pointercancel', endPan);
+    stage.addEventListener('wheel', event => {
+      event.preventDefault(); const box = stage.getBoundingClientRect();
+      zoom(scale * Math.pow(1.0015, -event.deltaY), event.clientX - box.left, event.clientY - box.top);
+    }, {passive:false});
+    stage.addEventListener('dblclick', fit);
+    $('#zoomIn').addEventListener('click', () => zoom(scale * 1.2));
+    $('#zoomOut').addEventListener('click', () => zoom(scale / 1.2));
+    $('#fit').addEventListener('click', fit);
+    window.addEventListener('resize', () => { if (!stage.hidden) fit(); });
+    $('#openEditor').addEventListener('click', () => {
+      stage.hidden = true; $('#notes').hidden = true; editor.hidden = false;
+      $('#previewTools').hidden = true; $('#openEditor').hidden = true; $('#returnPreview').hidden = false;
+      download.disabled = true; status.textContent = '正在连接 draw.io 编辑器…';
+      editor.src = 'https://embed.diagrams.net/?embed=1&proto=json&spin=1&libraries=1&noSaveBtn=1&noExitBtn=1';
+      editorTimer = setTimeout(() => { status.textContent = '编辑器未响应；可返回预览或下载文件。'; }, 15000);
+    });
+    $('#returnPreview').addEventListener('click', () => {
+      if (pending) return;
+      if (editorLoaded && dirty) { dialog.hidden = false; $('#applyChanges').focus(); return; }
+      resetEditor(); showPreview();
+    });
+    $('#continueEditing').addEventListener('click', () => { dialog.hidden = true; $('#returnPreview').focus(); });
+    $('#discardChanges').addEventListener('click', () => { dialog.hidden = true; resetEditor(); showPreview('已放弃本次修改。'); });
+    $('#applyChanges').addEventListener('click', () => { dialog.hidden = true; beginExport('apply'); });
+    dialog.addEventListener('click', event => { if (event.target === dialog) dialog.hidden = true; });
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') dialog.hidden = true; });
+    download.addEventListener('click', () => {
+      if (editor.hidden) downloadXml(currentXml);
+      else beginExport('download');
+    });
+    window.addEventListener('message', event => {
+      if (event.origin !== editorOrigin || event.source !== editor.contentWindow) return;
+      let message;
+      try { message = typeof event.data === 'string' ? JSON.parse(event.data) : event.data; } catch { return; }
+      if (message.event === 'init') {
+        clearTimeout(editorTimer);
+        editor.contentWindow.postMessage(JSON.stringify({action:'load',xml:currentXml,title:filename,autosave:1}), editorOrigin);
+      } else if (message.event === 'load') {
+        editorLoaded = true; dirty = false; changeVersion = 0; busy(false);
+        status.textContent = '可在画布中编辑；返回预览时可选择应用或放弃。';
+      } else if (message.event === 'autosave' && editorLoaded && typeof message.xml === 'string') {
+        dirty = true; changeVersion++;
+      } else if (message.event === 'export' && pending) {
+        if (message.message && message.message.requestId !== undefined && message.message.requestId !== pending.id) return;
+        if (pending.phase === 'xml' && message.format === 'xml' && typeof message.xml === 'string') {
+          pending.xml = message.xml; pending.phase = 'svg'; sendExport('svg', message.xml); armTimeout();
+        } else if (pending.phase === 'svg' && message.format === 'svg') {
+          clearTimeout(exportTimer);
+          if (typeof message.data !== 'string' || !message.data.startsWith('data:image/svg+xml')) { fail('SVG 导出失败，请重试。'); return; }
+          const completed = pending; pending.phase = 'write';
+          persist(completed.xml, message.data, completed.kind, completed.version);
+        }
+      } else if (message.event === 'exit') {
+        if (dirty) { dialog.hidden = false; $('#applyChanges').focus(); }
+        else { resetEditor(); showPreview(); }
+      }
+    });
+  })();
+  </script>
+</body>
+</html>
