@@ -10,7 +10,7 @@ description: Turn natural-language requirements into editable native .drawio sys
 ## Requirements
 
 - Python 3 for the bundled scripts.
-- draw.io desktop CLI for PNG and initial SVG export. `scripts/drawio_cli.py` resolves common executable names and install paths. If unavailable, provide the validated `.drawio` and state that visual self-review could not run. A previously rendered SVG may be supplied to `build_preview.py --svg` only when it corresponds to the final XML.
+- For SVG/PNG export, use the draw.io desktop CLI when installed. Otherwise `scripts/render_svg.py` uses the official diagrams.net viewer and headless Chromium; it needs browser access to `viewer.diagrams.net`. `DRAWIO_CHROMIUM` can point to a nonstandard executable. A previously rendered SVG may be supplied to `build_preview.py --svg` only when it corresponds to the final XML. If neither renderer works, provide the validated `.drawio` and state that visual self-review could not run.
 - Graphviz `dot` only if using optional `scripts/autolayout.py` for a large generic graph. Its grouped layout is not a substitute for hand-authored swimlane containment.
 - An image viewing capability in the host agent to inspect the exported PNG. Never claim visual review or repair if the host cannot read the PNG.
 

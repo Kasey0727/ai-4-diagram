@@ -71,7 +71,9 @@ def validate_svg(svg: bytes) -> None:
 def export_svg(drawio: Path, svg: Path, executable: str | None = None) -> None:
     executable = executable or resolve_drawio()
     if not executable:
-        raise RuntimeError("未找到 draw.io CLI；请提供已有 SVG，或在 XTeam 中使用浏览器导出")
+        from render_svg import render
+        render(drawio, svg)
+        return
     try:
         result = subprocess.run(
             [executable, "-x", "-f", "svg", "-o", str(svg), str(drawio)],

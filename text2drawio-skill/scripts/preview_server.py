@@ -69,16 +69,15 @@ class DiagramHandler(SimpleHTTPRequestHandler):
                 if revision(current) != base_revision:
                     return self.send_json(409, {"error": "图已被其他会话修改；请刷新页面后重新编辑"})
                 svg = fallback_svg
-                if self.drawio_cli:
-                    with tempfile.TemporaryDirectory(dir=self.directory_path) as temporary:
-                        draft = Path(temporary) / self.diagram_path.name
-                        rendered = Path(temporary) / self.svg_path.name
-                        draft.write_bytes(xml)
-                        try:
-                            export_svg(draft, rendered, self.drawio_cli)
-                            svg = rendered.read_bytes()
-                        except RuntimeError as exc:
-                            self.log_message("server SVG export failed, using browser SVG: %s", exc)
+                with tempfile.TemporaryDirectory(dir=self.directory_path) as temporary:
+                    draft = Path(temporary) / self.diagram_path.name
+                    rendered = Path(temporary) / self.svg_path.name
+                    draft.write_bytes(xml)
+                    try:
+                        export_svg(draft, rendered, self.drawio_cli)
+                        svg = rendered.read_bytes()
+                    except (RuntimeError, ValueError) as exc:
+                        self.log_message("server SVG export failed, using browser SVG: %s", exc)
                 atomic_write(self.svg_path, svg)
                 atomic_write(self.diagram_path, xml)
                 self.send_json(200, {"revision": revision(xml), "drawio": self.diagram_path.name,

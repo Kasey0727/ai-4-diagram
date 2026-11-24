@@ -3,9 +3,9 @@
 ## 文件分工
 
 - Agent 从需求编写原生、未压缩的 `.drawio` XML；可另写 `notes.json`，包含 `assumptions` 与 `questions` 两个字符串数组。
-- `scripts/build_preview.py` 验证 XML，导出 SVG，用 `assets/viewer.html.template` 生成固定 HTML。不要让 agent 临时生成页面代码，也不要把示例的扁平 graph JSON 当作泳道图真相来源。
+- `scripts/build_preview.py` 验证 XML，导出 SVG，用 `assets/viewer.html.template` 生成固定 HTML。SVG 优先由 draw.io CLI 导出；未安装 CLI 时，由 `scripts/render_svg.py` 在无头 Chromium 中加载 diagrams.net 官方 viewer 并提取 SVG。不要让 agent 临时生成页面代码，也不要把示例的扁平 graph JSON 当作泳道图真相来源。
 - HTML 只负责查看 SVG、缩放、打开 draw.io 嵌入编辑器和下载。编辑器通过 draw.io `postMessage` 协议导出最新 XML/SVG；HTML 将两者 POST 给同源服务。
-- `scripts/preview_server.py` 每次从 NFS 工作区读取当前 XML，以 SHA-256 版本检测覆盖冲突，校验 XML/SVG，优先用服务端 draw.io CLI 重算 SVG（自动查找，也可指定 `--drawio-cli`），否则使用浏览器导出的 SVG，原子写回 SVG 和 `.drawio`。进程重启后仍以文件为准，不依赖进程记忆。
+- `scripts/preview_server.py` 每次从 NFS 工作区读取当前 XML，以 SHA-256 版本检测覆盖冲突，校验 XML/SVG，服务端优先用 draw.io CLI、其次用 Chromium 重算 SVG；两者失败才使用浏览器导出的 SVG。随后原子写回 SVG 和 `.drawio`。进程重启后仍以文件为准，不依赖进程记忆。
 
 ## 沙箱运行
 
@@ -20,6 +20,8 @@ curl -f http://127.0.0.1:7777/diagram.html
 ```
 
 端口在 5555、6666、7777、8888 中选空闲的一个。服务进程不是持久的；预览卡失效时在同一持久目录重启服务。`embed.diagrams.net` 需要在用户浏览器可访问；若 XTeam 浏览器限制此域名，预览与下载仍可使用，编辑入口需平台放行或改接可用的 draw.io 域名。
+
+XTeam 的 Chromium 通常在 `/opt/ms-playwright/chromium-1234/chrome-linux64/chrome`。脚本自动探测；若路径变动，设置 `DRAWIO_CHROMIUM`。PNG 自检沿用 `scripts/export_png.py`，在没有 draw.io CLI 时用同一官方 viewer 和 Chromium 截图。首次构建需要沙箱能访问 `viewer.diagrams.net`；生成后的 SVG 预览由本地服务提供。
 
 服务确认可达后，按 XTeam 当前支持的预览卡协议输出 `wakeapp-app-preview` 代码块，`port` 填实际端口、`route` 填 URL 编码的 HTML 路径。平台材料中出现过 `wakerapp-app-preview` 与 `wakeapp-app-preview` 两种拼写，发布前在 XTeam 环境核对实际解析格式。给出 `.drawio` 会话文件下载入口；不要把静态 CDN 链接当作写回 API。
 
