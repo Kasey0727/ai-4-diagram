@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
+<title>登录鉴权流程</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --panel: #ffffff;
+    --line: #e3e6eb;
+    --ink: #1b1f24;
+    --muted: #6b7280;
+    --accent: #2f6feb;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  header {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+  }
+  .title {
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: .01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .meta { color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .spacer { flex: 1 1 auto; }
+  .tools { display: flex; align-items: center; gap: 6px; }
+  button {
+    appearance: none;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    height: 30px;
+    min-width: 30px;
+    padding: 0 10px;
+    border-radius: 7px;
+    font-size: 12px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background .12s ease, border-color .12s ease, color .12s ease;
+  }
+  button:hover { background: #f0f2f5; border-color: #d3d8df; }
+  button:active { transform: translateY(.5px); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  button.primary:hover { background: #2560d4; border-color: #2560d4; }
+  .zoom {
+    min-width: 52px;
+    text-align: center;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+    user-select: none;
+  }
+  #stage {
+    position: relative;
+    flex: 1 1 auto;
+    overflow: hidden;
+    cursor: grab;
+    background-image: radial-gradient(#dfe3e9 1px, transparent 1px);
+    background-size: 20px 20px;
+    touch-action: none;
+  }
+  #stage.dragging { cursor: grabbing; }
+  /* A zero-size container makes the diagrams.net viewer skip rendering,
+     so the viewport must always have a measurable box. */
+  #viewport {
+    position: absolute;
+    inset: 0;
+    transform-origin: 0 0;
+    will-change: transform;
+  }
+  #viewport > svg { display: block; background: transparent; }
+  #viewport .mxgraph { background: transparent !important; }
+  #viewport .mxgraph svg { display: block; background: transparent !important; }
+  .hint {
+    position: absolute;
+    left: 14px;
+    bottom: 12px;
+    color: var(--muted);
+    font-size: 12px;
+    background: rgba(255,255,255,.86);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 3px 8px;
+    pointer-events: none;
+  }
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 26px;
+    transform: translateX(-50%) translateY(12px);
+    background: #1b1f24;
+    color: #fff;
+    font-size: 12px;
+    padding: 7px 12px;
+    border-radius: 7px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .18s ease, transform .18s ease;
+    z-index: 20;
+  }
+  .toast.show { opacity: .94; transform: translateX(-50%) translateY(0); }
+  @media (max-width: 640px) {
+    .meta { display: none; }
+    .title { max-width: 34vw; }
+    header { gap: 6px; padding: 8px 10px; }
+    button { padding: 0 7px; font-size: 11px; }
+    .zoom { min-width: 40px; }
+    .hint { display: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <span class="title" title="登录鉴权流程">登录鉴权流程</span>
+  <span class="meta">登录鉴权流程.drawio</span>
+  <span class="spacer"></span>
+  <div class="tools">
+    <button id="zoomOut" title="缩小" aria-label="缩小">&minus;</button>
+    <span class="zoom" id="zoomLabel">100%</span>
+    <button id="zoomIn" title="放大" aria-label="放大">+</button>
+    <button id="fit" title="适应窗口" aria-label="适应窗口">适应</button>
+    <button id="download" class="primary" title="下载 .drawio 文件">下载 .drawio</button>
+    <button id="fullscreen" title="全屏" aria-label="全屏">全屏</button>
+  </div>
+</header>
+
+<div id="stage">
+  <div id="viewport"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 526 1126" width="526" height="1126" role="img" aria-label="登录鉴权流程"><defs><marker id="arw0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1F9D6B"/></marker><marker id="arw1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8A94A6"/></marker><marker id="arw2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#B6BDC7"/></marker><marker id="arw3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#D64545"/></marker></defs><g class="node" data-id="start"><ellipse cx="263" cy="76" rx="75" ry="28" fill="#EAF2FF" stroke="#2F6FEB" stroke-width="1.5"/><text x="263" y="80.68" text-anchor="middle" fill="#1B3FA0" font-size="13" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Hiragino Sans GB,Microsoft YaHei,sans-serif"><tspan x="263" dy="0">用户点击登录</tspan></text></g><g class="node" data-id="input"><rect x="168" y="184" width="190" height="64" rx="8" ry="8" fill="#FFFFFF" stroke="#C7CDD6" stroke-width="1.5"/><text x="263" y="220.68" text-anchor="middle" fill="#1B1F24" font-size="13" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Hiragino Sans GB,Microsoft YaHei,sans-serif"><tspan x="263" dy="0">输入手机号与验证码</tspan></text></g><g class="node" data-id="check"><polygon points="263,328 348,383 263,438 178,383" fill="#FFF8E6" stroke="#D9A21B" stroke-width="1.5"/><text x="263" y="387.68" text-anchor="middle" fill="#6B4A00" font-size="13" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Hiragino Sans GB,Microsoft YaHei,sans-serif"><tspan x="263" dy="0">校验验证码</tspan></text></g><g class="node" data-id="risk"><polygon points="133,518 218,573 133,628 48,573" fill="#FFF8E6" stroke="#D9A21B" stroke-width="1.5"/><text x="133" y="577.68" text-anchor="middle" fill="#6B4A00" font-size="13" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Hiragino Sans GB,Microsoft YaHei,sans-serif"><tspan x="133" dy="0">风控校验</tspan></text></g><g class="node" data-id="query"><path d="M88,720.6 L88,785.4 A65,12.6 0 0 0 218,785.4 L218,720.6 Z" fill="#EAF7F0" stroke="#1F9D6B" stroke-width="1.5"/><ellipse cx="153" cy="720.6" rx="65" ry="12.6" fill="#EAF7F0" stroke="#1F9D6B" stroke-width="1.5"/><text x="153" y="757.68" text-anchor="middle" fill="#12553B" font-size="13" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Hiragino Sans GB,Microsoft YaHei,sans-serif"><tspan x="153" dy="0">查询用户账户</tspan></text></g><g class="node" data-id="token"><rect x="168" y="878" width="190" height="64" rx="8" ry="8" fill="#FFFFFF" stroke="#C7CDD6" stroke-width="1.5"/><text x="263" y="914.68" text-anchor="middle" fill="#1B1F24" font-size="13" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Hiragino Sans GB,Microsoft YaHei,sans-serif"><tspan x="263" dy="0">签发登录态 Token</tspan></text></g><g class="node" data-id="ok"><ellipse cx="263" cy="1050" rx="75" ry="28" fill="#FFF1F0" stroke="#D64545" stroke-width="1.5"/><text x="263" y="1054.68" text-anchor="middle" fill="#8A1C1C" font-size="13" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Hiragino Sans GB,Microsoft YaHei,sans-serif"><tspan x="263" dy="0">进入首页</tspan></text></g><g class="node" data-id="fail"><rect x="288" y="518" width="190" height="64" rx="8" ry="8" fill="#FFFFFF" stroke="#C7CDD6" stroke-width="1.5"/><text x="383" y="554.68" text-anchor="middle" fill="#1B1F24" font-size="13" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Hiragino Sans GB,Microsoft YaHei,sans-serif"><tspan x="383" dy="0">提示重新输入</tspan></text></g><g class="node" data-id="block"><ellipse cx="363" cy="736" rx="75" ry="28" fill="#FFF1F0" stroke="#D64545" stroke-width="1.5"/><text x="363" y="740.68" text-anchor="middle" fill="#8A1C1C" font-size="13" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Hiragino Sans GB,Microsoft YaHei,sans-serif"><tspan x="363" dy="0">拦截并提示风险</tspan></text></g><path d="M263,104 C263,140 263,148 263,184" fill="none" stroke="#8A94A6" stroke-width="1.5" stroke-linecap="round" marker-end="url(#arw1)"/><path d="M263,248 C263,284 263,292 263,328" fill="none" stroke="#8A94A6" stroke-width="1.5" stroke-linecap="round" marker-end="url(#arw1)"/><path d="M263,438 C263,474 133,482 133,518" fill="none" stroke="#1F9D6B" stroke-width="1.5" stroke-linecap="round" marker-end="url(#arw0)"/><path d="M263,438 C263,474 383,482 383,518" fill="none" stroke="#D64545" stroke-width="1.5" stroke-linecap="round" marker-end="url(#arw3)"/><path d="M288,550 L136,550 Q122,550 122,536 L122,230 Q122,216 136,216 L168,216" fill="none" stroke="#B6BDC7" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="5 5" marker-end="url(#arw2)"/><path d="M133,628 C133,664 153,672 153,708" fill="none" stroke="#1F9D6B" stroke-width="1.5" stroke-linecap="round" marker-end="url(#arw0)"/><path d="M218,573 C249.5,573 256.5,736 288,736" fill="none" stroke="#D64545" stroke-width="1.5" stroke-linecap="round" marker-end="url(#arw3)"/><path d="M153,798 C153,834 263,842 263,878" fill="none" stroke="#8A94A6" stroke-width="1.5" stroke-linecap="round" marker-end="url(#arw1)"/><path d="M263,942 C263,978 263,986 263,1022" fill="none" stroke="#8A94A6" stroke-width="1.5" stroke-linecap="round" marker-end="url(#arw1)"/><rect x="179" y="467" width="38" height="22" rx="4" fill="#FFFFFF" opacity="0.96"/><text x="198" y="482.3" text-anchor="middle" fill="#12553B" font-size="12" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Hiragino Sans GB,Microsoft YaHei,sans-serif">通过</text><rect x="298" y="467" width="50" height="22" rx="4" fill="#FFFFFF" opacity="0.96"/><text x="323" y="482.3" text-anchor="middle" fill="#8A1C1C" font-size="12" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Hiragino Sans GB,Microsoft YaHei,sans-serif">不通过</text><rect x="103" y="372" width="38" height="22" rx="4" fill="#FFFFFF" opacity="0.96"/><text x="122" y="387.3" text-anchor="middle" fill="#8A94A6" font-size="12" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Hiragino Sans GB,Microsoft YaHei,sans-serif">重试</text><rect x="118" y="657" width="50" height="22" rx="4" fill="#FFFFFF" opacity="0.96"/><text x="143" y="672.3" text-anchor="middle" fill="#12553B" font-size="12" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Hiragino Sans GB,Microsoft YaHei,sans-serif">低风险</text><rect x="228" y="643.5" width="50" height="22" rx="4" fill="#FFFFFF" opacity="0.96"/><text x="253" y="658.8" text-anchor="middle" fill="#8A1C1C" font-size="12" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Hiragino Sans GB,Microsoft YaHei,sans-serif">高风险</text></svg></div>
+  <div class="hint">拖拽平移 · 滚轮缩放 · 双击适应窗口</div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var MXFILE = "<mxfile host=\"app.diagrams.net\" agent=\"xteam-drawio-skill\" version=\"24.7.17\">\n  <diagram id=\"page-1\" name=\"登录鉴权流程\">\n    <mxGraphModel dx=\"1200\" dy=\"900\" grid=\"1\" gridSize=\"10\" guides=\"1\" tooltips=\"1\" connect=\"1\" arrows=\"1\" fold=\"1\" page=\"0\" pageScale=\"1\" pageWidth=\"1280\" pageHeight=\"900\" math=\"0\" shadow=\"0\">\n      <root>\n        <mxCell id=\"0\" />\n        <mxCell id=\"1\" parent=\"0\" />\n        <mxCell id=\"start\" value=\"用户点击登录\" style=\"ellipse;whiteSpace=wrap;html=1;fillColor=#EAF2FF;strokeColor=#2F6FEB;fontColor=#1B3FA0;fontSize=13;\" vertex=\"1\" parent=\"1\">\n          <mxGeometry x=\"188\" y=\"48\" width=\"150\" height=\"56\" as=\"geometry\" />\n        <\/mxCell>\n        <mxCell id=\"input\" value=\"输入手机号与验证码\" style=\"rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C7CDD6;fontColor=#1B1F24;fontSize=13;\" vertex=\"1\" parent=\"1\">\n          <mxGeometry x=\"168\" y=\"184\" width=\"190\" height=\"64\" as=\"geometry\" />\n        <\/mxCell>\n        <mxCell id=\"check\" value=\"校验验证码\" style=\"rhombus;whiteSpace=wrap;html=1;fillColor=#FFF8E6;strokeColor=#D9A21B;fontColor=#6B4A00;fontSize=13;\" vertex=\"1\" parent=\"1\">\n          <mxGeometry x=\"178\" y=\"328\" width=\"170\" height=\"110\" as=\"geometry\" />\n        <\/mxCell>\n        <mxCell id=\"risk\" value=\"风控校验\" style=\"rhombus;whiteSpace=wrap;html=1;fillColor=#FFF8E6;strokeColor=#D9A21B;fontColor=#6B4A00;fontSize=13;\" vertex=\"1\" parent=\"1\">\n          <mxGeometry x=\"48\" y=\"518\" width=\"170\" height=\"110\" as=\"geometry\" />\n        <\/mxCell>\n        <mxCell id=\"query\" value=\"查询用户账户\" style=\"shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=15;whiteSpace=wrap;html=1;fillColor=#EAF7F0;strokeColor=#1F9D6B;fontColor=#12553B;fontSize=13;\" vertex=\"1\" parent=\"1\">\n          <mxGeometry x=\"88\" y=\"708\" width=\"130\" height=\"90\" as=\"geometry\" />\n        <\/mxCell>\n        <mxCell id=\"token\" value=\"签发登录态 Token\" style=\"rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C7CDD6;fontColor=#1B1F24;fontSize=13;\" vertex=\"1\" parent=\"1\">\n          <mxGeometry x=\"168\" y=\"878\" width=\"190\" height=\"64\" as=\"geometry\" />\n        <\/mxCell>\n        <mxCell id=\"ok\" value=\"进入首页\" style=\"ellipse;whiteSpace=wrap;html=1;fillColor=#FFF1F0;strokeColor=#D64545;fontColor=#8A1C1C;fontSize=13;\" vertex=\"1\" parent=\"1\">\n          <mxGeometry x=\"188\" y=\"1022\" width=\"150\" height=\"56\" as=\"geometry\" />\n        <\/mxCell>\n        <mxCell id=\"fail\" value=\"提示重新输入\" style=\"rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C7CDD6;fontColor=#1B1F24;fontSize=13;\" vertex=\"1\" parent=\"1\">\n          <mxGeometry x=\"288\" y=\"518\" width=\"190\" height=\"64\" as=\"geometry\" />\n        <\/mxCell>\n        <mxCell id=\"block\" value=\"拦截并提示风险\" style=\"ellipse;whiteSpace=wrap;html=1;fillColor=#FFF1F0;strokeColor=#D64545;fontColor=#8A1C1C;fontSize=13;\" vertex=\"1\" parent=\"1\">\n          <mxGeometry x=\"288\" y=\"708\" width=\"150\" height=\"56\" as=\"geometry\" />\n        <\/mxCell>\n        <mxCell id=\"e1\" value=\"\" style=\"edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#8A94A6;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=12;fontColor=#4B5563;labelBackgroundColor=#FFFFFF;\" edge=\"1\" parent=\"1\" source=\"start\" target=\"input\">\n          <mxGeometry relative=\"1\" as=\"geometry\" />\n        <\/mxCell>\n        <mxCell id=\"e2\" value=\"\" style=\"edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#8A94A6;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=12;fontColor=#4B5563;labelBackgroundColor=#FFFFFF;\" edge=\"1\" parent=\"1\" source=\"input\" target=\"check\">\n          <mxGeometry relative=\"1\" as=\"geometry\" />\n        <\/mxCell>\n        <mxCell id=\"e3\" value=\"通过\" style=\"edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1F9D6B;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=12;fontColor=#12553B;labelBackgroundColor=#FFFFFF;\" edge=\"1\" parent=\"1\" source=\"check\" target=\"risk\">\n          <mxGeometry relative=\"1\" as=\"geometry\" />\n        <\/mxCell>\n        <mxCell id=\"e4\" value=\"不通过\" style=\"edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#D64545;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=12;fontColor=#8A1C1C;labelBackgroundColor=#FFFFFF;\" edge=\"1\" parent=\"1\" source=\"check\" target=\"fail\">\n          <mxGeometry relative=\"1\" as=\"geometry\" />\n        <\/mxCell>\n        <mxCell id=\"e5\" value=\"重试\" style=\"edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#B6BDC7;strokeWidth=1.2;endArrow=block;endFill=1;fontSize=12;fontColor=#8A94A6;labelBackgroundColor=#FFFFFF;dashed=1;\" edge=\"1\" parent=\"1\" source=\"fail\" target=\"input\">\n          <mxGeometry relative=\"1\" as=\"geometry\" />\n        <\/mxCell>\n        <mxCell id=\"e6\" value=\"低风险\" style=\"edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1F9D6B;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=12;fontColor=#12553B;labelBackgroundColor=#FFFFFF;\" edge=\"1\" parent=\"1\" source=\"risk\" target=\"query\">\n          <mxGeometry relative=\"1\" as=\"geometry\" />\n        <\/mxCell>\n        <mxCell id=\"e7\" value=\"高风险\" style=\"edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#D64545;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=12;fontColor=#8A1C1C;labelBackgroundColor=#FFFFFF;\" edge=\"1\" parent=\"1\" source=\"risk\" target=\"block\">\n          <mxGeometry relative=\"1\" as=\"geometry\" />\n        <\/mxCell>\n        <mxCell id=\"e8\" value=\"\" style=\"edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#8A94A6;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=12;fontColor=#4B5563;labelBackgroundColor=#FFFFFF;\" edge=\"1\" parent=\"1\" source=\"query\" target=\"token\">\n          <mxGeometry relative=\"1\" as=\"geometry\" />\n        <\/mxCell>\n        <mxCell id=\"e9\" value=\"\" style=\"edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#8A94A6;strokeWidth=1.5;endArrow=block;endFill=1;fontSize=12;fontColor=#4B5563;labelBackgroundColor=#FFFFFF;\" edge=\"1\" parent=\"1\" source=\"token\" target=\"ok\">\n          <mxGeometry relative=\"1\" as=\"geometry\" />\n        <\/mxCell>\n      <\/root>\n    <\/mxGraphModel>\n  <\/diagram>\n<\/mxfile>";
+  var FILE_NAME = "登录鉴权流程.drawio";
+
+  var stage = document.getElementById("stage");
+  var viewport = document.getElementById("viewport");
+  var zoomLabel = document.getElementById("zoomLabel");
+  var toastEl = document.getElementById("toast");
+
+  var scale = 1, tx = 0, ty = 0;
+  var naturalW = 0, naturalH = 0;
+
+  function applyTransform() {
+    viewport.style.transform = "translate(" + tx + "px," + ty + "px) scale(" + scale + ")";
+    zoomLabel.textContent = Math.round(scale * 100) + "%";
+  }
+
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { toastEl.classList.remove("show"); }, 1600);
+  }
+
+  function measure() {
+    var svg = viewport.querySelector("svg");
+    if (!svg) return false;
+    var box = svg.getBoundingClientRect();
+    naturalW = Math.max(box.width / (scale || 1), 1);
+    naturalH = Math.max(box.height / (scale || 1), 1);
+    return true;
+  }
+
+  function fit(padding) {
+    var svg = viewport.querySelector("svg");
+    if (!svg) return;
+    var box = stage.getBoundingClientRect();
+    var vb = svg.viewBox && svg.viewBox.baseVal;
+    var w = (vb && vb.width) ? vb.width : (naturalW || box.width);
+    var h = (vb && vb.height) ? vb.height : (naturalH || box.height);
+    var pad = padding == null ? 36 : padding;
+    scale = Math.min((box.width - pad * 2) / w, (box.height - pad * 2) / h);
+    scale = Math.max(0.05, Math.min(scale, 3));
+    tx = (box.width - w * scale) / 2;
+    ty = (box.height - h * scale) / 2;
+    applyTransform();
+  }
+
+  function zoomAt(next, cx, cy) {
+    next = Math.max(0.05, Math.min(next, 8));
+    var box = stage.getBoundingClientRect();
+    var px = cx == null ? box.width / 2 : cx;
+    var py = cy == null ? box.height / 2 : cy;
+    tx = px - (px - tx) * (next / scale);
+    ty = py - (py - ty) * (next / scale);
+    scale = next;
+    applyTransform();
+  }
+
+  var dragging = false, lastX = 0, lastY = 0;
+  stage.addEventListener("pointerdown", function (e) {
+    if (e.button !== 0) return;
+    dragging = true;
+    lastX = e.clientX; lastY = e.clientY;
+    stage.classList.add("dragging");
+    if (stage.setPointerCapture) stage.setPointerCapture(e.pointerId);
+  });
+  stage.addEventListener("pointermove", function (e) {
+    if (!dragging) return;
+    tx += e.clientX - lastX;
+    ty += e.clientY - lastY;
+    lastX = e.clientX; lastY = e.clientY;
+    applyTransform();
+  });
+  function endPan(e) {
+    if (!dragging) return;
+    dragging = false;
+    stage.classList.remove("dragging");
+    if (stage.hasPointerCapture && stage.hasPointerCapture(e.pointerId)) {
+      stage.releasePointerCapture(e.pointerId);
+    }
+  }
+  stage.addEventListener("pointerup", endPan);
+  stage.addEventListener("pointercancel", endPan);
+
+  stage.addEventListener("wheel", function (e) {
+    e.preventDefault();
+    var box = stage.getBoundingClientRect();
+    zoomAt(scale * Math.pow(1.0015, -e.deltaY), e.clientX - box.left, e.clientY - box.top);
+  }, { passive: false });
+
+  stage.addEventListener("dblclick", function (e) {
+    if (e.target.closest("button")) return;
+    fit();
+  });
+
+  document.getElementById("zoomIn").addEventListener("click", function () { zoomAt(scale * 1.2); });
+  document.getElementById("zoomOut").addEventListener("click", function () { zoomAt(scale / 1.2); });
+  document.getElementById("fit").addEventListener("click", function () { fit(); });
+  document.getElementById("fullscreen").addEventListener("click", function () {
+    if (document.fullscreenElement) { document.exitFullscreen(); }
+    else if (stage.requestFullscreen) { stage.requestFullscreen(); }
+  });
+  document.addEventListener("fullscreenchange", function () { setTimeout(function () { fit(); }, 60); });
+
+  document.getElementById("download").addEventListener("click", function () {
+    var blob = new Blob([MXFILE], { type: "application/xml;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = FILE_NAME;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    toast("已下载 " + FILE_NAME);
+  });
+
+  function boot() {
+    if (!viewport.querySelector("svg")) {
+      toast("图形未渲染，请刷新或检查网络");
+      return;
+    }
+    measure();
+    fit();
+    setTimeout(measure, 150);
+  }
+
+  // Without this the diagram is stranded off-screen after a window resize
+  // or a rotation, because the transform is in stage pixel space.
+  var resizeTimer = null;
+  window.addEventListener("resize", function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () { measure(); fit(); }, 120);
+  });
+
+  var tries = 0;
+  var timer = setInterval(function () {
+    tries++;
+    if (viewport.querySelector("svg")) {
+      clearInterval(timer);
+      boot();
+    } else if (tries > 150) {
+      clearInterval(timer);
+      toast("图形渲染超时，请检查网络后刷新");
+    }
+  }, 100);
+})();
+</script>
+
+</body>
+</html>

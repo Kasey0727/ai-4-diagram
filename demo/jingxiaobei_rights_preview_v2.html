@@ -55,7 +55,10 @@
 </head>
 <body>
   <header>
-    <div class="identity"><h1>京小贝权益大卡与金条卡片交互</h1><span class="filename">jingxiaobei_rights.drawio</span></div>
+    <div class="identity">
+      <h1>京小贝权益大卡与金条卡片交互</h1>
+      <span class="filename">jingxiaobei_rights.drawio</span>
+    </div>
     <div id="previewTools" class="tool-group" aria-label="预览缩放">
       <button id="zoomOut" type="button" title="缩小" aria-label="缩小">−</button>
       <span id="zoomLabel" aria-live="off">100%</span>
@@ -63,9 +66,9 @@
       <button id="fit" type="button">适应</button>
     </div>
     <div class="toolbar">
-      <button id="openEditor" type="button">打开 draw.io 编辑器</button>
-      <button id="returnPreview" type="button" hidden>返回 SVG 预览</button>
-      <button id="download" class="primary" type="button">下载 .drawio</button>
+      <button id="openEditor" type="button">编辑</button>
+      <button id="returnPreview" type="button" hidden>预览</button>
+      <button id="download" class="primary" type="button">下载</button>
     </div>
   </header>
   <main id="workspace">
@@ -85,7 +88,7 @@
   <div id="returnDialog" class="dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="returnDialogTitle" hidden>
     <div class="dialog-card">
       <h2 id="returnDialogTitle">如何处理刚才的修改？</h2>
-      <p>应用修改会更新页面预览；要把图保存在本地，请点击“下载 .drawio”。</p>
+      <p>应用修改则会更新页面预览；如需将图保存在本地，请点击“下载”。</p>
       <div class="dialog-actions">
         <button id="continueEditing" type="button">继续编辑</button>
         <button id="discardChanges" type="button">放弃修改并返回</button>

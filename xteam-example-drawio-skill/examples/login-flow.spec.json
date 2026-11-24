@@ -1,0 +1,26 @@
+{
+  "title": "登录鉴权流程",
+  "direction": "TB",
+  "nodes": [
+    { "id": "start", "label": "用户点击登录", "type": "start" },
+    { "id": "input", "label": "输入手机号与验证码", "type": "process" },
+    { "id": "check", "label": "校验验证码", "type": "decision" },
+    { "id": "risk", "label": "风控校验", "type": "decision" },
+    { "id": "query", "label": "查询用户账户", "type": "db" },
+    { "id": "token", "label": "签发登录态 Token", "type": "process" },
+    { "id": "ok", "label": "进入首页", "type": "end" },
+    { "id": "fail", "label": "提示重新输入", "type": "process" },
+    { "id": "block", "label": "拦截并提示风险", "type": "end" }
+  ],
+  "edges": [
+    { "from": "start", "to": "input" },
+    { "from": "input", "to": "check" },
+    { "from": "check", "to": "risk", "label": "通过", "style": "success" },
+    { "from": "check", "to": "fail", "label": "不通过", "style": "danger" },
+    { "from": "fail", "to": "input", "label": "重试", "style": "muted", "dashed": true },
+    { "from": "risk", "to": "query", "label": "低风险", "style": "success" },
+    { "from": "risk", "to": "block", "label": "高风险", "style": "danger" },
+    { "from": "query", "to": "token" },
+    { "from": "token", "to": "ok" }
+  ]
+}
