@@ -14,7 +14,9 @@ A flowchart split by **who does what** — one vertical column per role, departm
 | Handoff edge | `edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontColor=#000000;endArrow=block;` | Connects steps across columns |
 | Layout | Top to bottom sequence | Keep steps inside their system's column; leave clear horizontal corridors for cross-system edges |
 
-Create lane geometries with the same `y` and `height`, distinct `x` values, and no horizontal overlap. For example, three 300 px wide lanes can start at x = 0, 300, and 600 relative to the pool. The visible header band is at the top of each column.
+Create lane geometries with the same `y` and `height`, and make every pair touch exactly: `next.x = current.x + current.width` in pool-relative coordinates. For example, three 300 px wide lanes start at x = 0, 300, and 600. Do not add a gutter between columns; keep spacing inside the lane around its nodes. The visible header band is at the top of each column. `scripts/normalize_geometry.py` can fill accidental gaps by extending the left lane without moving its children or any edge waypoint.
+
+For a direct horizontal handoff, use right/left side ports at the same **absolute y**; for a direct vertical edge, use bottom/top ports at the same **absolute x**. Pin all four port fractions explicitly and do not add waypoints to an intended straight line. When node centers differ slightly, compute both fractional ports from one shared coordinate, rather than rounding `exitY` and `entryY` (or `exitX` and `entryX`) independently. Keep ellipse/cylinder endpoints at the side center (`0.5`) because draw.io projects off-center ports onto their curved perimeter. The normalizer fills missing ports and snaps small mismatches up to 24 px only when the resulting ports remain away from shape corners; larger detours still need explicit routing or node alignment.
 
 ## Flowchart nodes
 

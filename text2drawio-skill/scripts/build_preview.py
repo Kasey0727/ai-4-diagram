@@ -8,7 +8,10 @@ import html
 import json
 from pathlib import Path
 import shutil
+import xml.etree.ElementTree as ET
 
+from check_conventions import inspect
+from normalize_geometry import normalize
 from preview_files import export_svg, revision, validate_svg, validate_xml
 
 TEMPLATE = Path(__file__).resolve().parents[1] / "assets" / "viewer.html.template"
@@ -20,14 +23,26 @@ def js_value(value: object) -> str:
 
 def build(source: Path, output: Path, title: str, notes: dict, supplied_svg: Path | None,
           drawio_cli: str | None) -> dict:
-    xml = source.read_bytes()
-    validate_xml(xml)
+    validate_xml(source.read_bytes())
     output.mkdir(parents=True, exist_ok=True)
     target = output / source.name
     if source.resolve() != target.resolve():
         shutil.copyfile(source, target)
+    tree = ET.parse(target)
+    geometry_fixes, unresolved = normalize(tree)
+    if unresolved:
+        raise ValueError("几何修正需要人工处理：" + "; ".join(unresolved))
+    if geometry_fixes:
+        tree.write(target, encoding="utf-8", xml_declaration=True)
+    findings = inspect(target)
+    if findings:
+        raise ValueError("图形规范检查失败：" + "; ".join(findings[:5]))
+    xml = target.read_bytes()
+    validate_xml(xml)
     svg = output / f"{source.stem}.preview.svg"
     if supplied_svg:
+        if geometry_fixes:
+            raise ValueError("泳道或端口已修正，提供的 SVG 可能过期；请重新导出 SVG")
         svg_bytes = supplied_svg.read_bytes()
         validate_svg(svg_bytes)
         if supplied_svg.resolve() != svg.resolve():
@@ -49,7 +64,8 @@ def build(source: Path, output: Path, title: str, notes: dict, supplied_svg: Pat
         template = template.replace(marker, value)
     page.write_text(template, encoding="utf-8")
     return {"drawio": str(target.resolve()), "svg": str(svg.resolve()),
-            "html": str(page.resolve()), "revision": revision(xml)}
+            "html": str(page.resolve()), "revision": revision(xml),
+            "geometry_fixes": geometry_fixes}
 
 
 def main() -> None:
