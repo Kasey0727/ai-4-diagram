@@ -12,6 +12,7 @@
 
 | 时间 | 类型 | 修改项与验证 | 提交 |
 | --- | --- | --- | --- |
+| 2026-11-27 18:40 | `fix` | 处理 XTeam 新安装版本中 `styles/` 被设为 root:root、权限 `000` 的反馈：移除技能包内不必要的 `styles/` 目录，自动布局改用与旧七个预设角色完全相同的内置黑白配色；新增可重复使用的 ZIP 打包脚本，显式记录剩余目录权限 `0755`。解包后确认没有 `styles/`、目录均可读，并从解包目录运行泳道规范检查和 HTML/SVG 预览构建成功；Python 语法及 Git diff 检查通过。XTeam 安装器是否遵循 ZIP 权限仍需平台复测。 | `fix(skill): remove unreadable styles dependency` |
 | 2026-11-27 17:33 | `fix` | 为 `text2drawio-skill` 增加泳道无缝相邻、近水平/竖直连线端口对齐的确定性检查与保守修正；构建预览前自动执行并阻止未修复的规范问题交付。扩展左侧泳道宽度填缝，不移动节点或折点；仅对无折点且小幅错位的正交连线补齐/校准端口，非矩形端点固定在边侧中点。用京小贝原图构造 15px 泳道间隙、12px 水平错位及 6px 竖直错位：修正后规范检查 0 项、结构校验 0 项，SVG 路径为单段水平/竖直线；原图无需修正且输出未改变，Python 语法与 Git diff 检查通过。截图对应原始 `.drawio` 未提供，仍需在 XTeam 用实际失败文件复测。 | `fix(skill): normalize swimlane gaps and straight edges` |
 | 2026-11-27 15:38 | `fix` | 根据 XTeam 沙箱反馈，在 Chromium 候选链加入 PATH 和固定路径的 `chrome-headless-shell`，并在该沙箱固定路径中优先于完整版 Chrome；分别诊断渲染超时、进程启动失败、零 DOM 输出和 viewer 未生成 SVG。更新技能与交付说明，不改 HTML 编辑器。候选优先级模拟、错误分支模拟、Python 语法及本机实际 SVG 导出通过；XTeam 指定路径仍需在平台复测。 | `fix(skill): prefer XTeam headless shell for rendering` |
 | 2026-11-24 18:07 | `feat` | 为 `text2drawio-skill` 增加无 draw.io CLI 时的渲染降级：官方 diagrams.net viewer + 无头 Chromium 导出 SVG，并为 PNG 自检截图；预览构建与编辑后服务端重算共用该链路。京小贝样例在本机 Chrome 下成功导出并目视检查完整黑白竖向泳道；模拟缺少 CLI 验证 HTML/SVG 构建、PNG 输出及 POST 后服务端重算与文件写回；Python 语法、ZIP 内容及 Git diff 检查通过。XTeam 容器中的 Chromium 路径尚待平台实测。 | `feat(skill): add Chromium rendering fallback` |

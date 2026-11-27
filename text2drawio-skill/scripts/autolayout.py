@@ -36,32 +36,9 @@ NODE_STYLE = "rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#00
 EDGE_STYLE = "html=1;rounded=0;strokeColor=#000000;fontColor=#000000;"
 GROUP_STYLE = ("rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;"
                "verticalAlign=top;fontStyle=2;dashed=1;")
-# Group colours come from the skill's own palette (styles/built-in/default.json)
-# so there is a single source of truth, not a second list baked in here. When a
-# grouped graph is laid out, each top-level group takes the next colour (cycled
-# in a fixed, harmonious role order) so related modules read as a coloured
-# cluster. Nodes that carry their own `style` keep it; only styleless grouped
-# nodes are tinted. Disable with --mono.
-_PALETTE_ORDER = ["primary", "success", "accent", "secondary", "warning", "danger", "neutral"]
-_PALETTE_FILE = os.path.join(os.path.dirname(__file__), "..", "styles", "built-in", "default.json")
-_FALLBACK_PALETTE = [("#FFFFFF", "#000000")]
-
-
-def load_palette():
-    """Ordered (fill, stroke) list from the default preset's palette; fall back
-    to the same colours inline if the preset file can't be read."""
-    try:
-        with open(_PALETTE_FILE, encoding="utf-8") as fh:
-            pal = json.load(fh)["palette"]
-        colors = [(pal[r]["fillColor"], pal[r]["strokeColor"]) for r in _PALETTE_ORDER if r in pal]
-        if colors:
-            return colors
-    except (OSError, KeyError, ValueError):
-        pass
-    return _FALLBACK_PALETTE
-
-
-PALETTE = load_palette()
+# Every former palette role used this same pair. Keep the optional grouped
+# layout self-contained, so a skill-package directory cannot block generation.
+PALETTE = [("#FFFFFF", "#000000")]
 # Uniform container padding; the title sits in the top pad (verticalAlign=top).
 # dot's cluster margin is set to this same value so each container box equals
 # dot's cluster box — which dot guarantees never overlaps, at any nesting depth.

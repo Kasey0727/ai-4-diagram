@@ -1,5 +1,9 @@
 # XTeam 预览与写回
 
+## 技能包目录权限
+
+发布方使用仓库根目录的 `package_text2drawio.py` 打包，ZIP 中显式记录技能包目录权限 `0755`。当前技能包不再包含 `styles/`：其旧预设的七个颜色角色全部是相同的黑白配色，可选的自动布局脚本已内置这组值，不需要读取该目录。若旧安装版本的 `styles/` 在 XTeam 沙箱中被设为 root 所有、权限 `000`，`agent_user` 无法自行修复该路径；请上传新 ZIP 安装新版本，并在安装路径核对目录权限。
+
 ## 文件分工
 
 - Agent 从需求编写原生、未压缩的 `.drawio` XML；可另写 `notes.json`，包含 `assumptions` 与 `questions` 两个字符串数组。
