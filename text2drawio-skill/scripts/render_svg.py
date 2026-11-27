@@ -19,6 +19,7 @@ import xml.etree.ElementTree as ET
 
 
 VIEWER_URL = "https://viewer.diagrams.net/js/viewer-static.min.js"
+XTEAM_HEADLESS_SHELL = "/opt/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell"
 XTEAM_CHROMIUM = "/opt/ms-playwright/chromium-1234/chrome-linux64/chrome"
 MAC_CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 RESULT_PATTERN = re.compile(r'<pre id="render-result">([A-Za-z0-9+/=]+)</pre>')
@@ -26,8 +27,8 @@ RESULT_PATTERN = re.compile(r'<pre id="render-result">([A-Za-z0-9+/=]+)</pre>')
 
 def resolve_chromium(explicit: str | None = None) -> str | None:
     candidates = [explicit, os.environ.get("DRAWIO_CHROMIUM")]
-    candidates += [shutil.which(name) for name in ("chromium", "chromium-browser", "google-chrome", "google-chrome-stable")]
-    candidates += [XTEAM_CHROMIUM, MAC_CHROME]
+    candidates += [shutil.which(name) for name in ("chrome-headless-shell", "chromium", "chromium-browser", "google-chrome", "google-chrome-stable")]
+    candidates += [XTEAM_HEADLESS_SHELL, XTEAM_CHROMIUM, MAC_CHROME]
     for candidate in candidates:
         if candidate and Path(candidate).is_file() and os.access(candidate, os.X_OK):
             return str(Path(candidate).resolve())
@@ -114,12 +115,25 @@ def render(drawio: Path, svg: Path, chromium: str | None = None,
         try:
             result = subprocess.run(command, capture_output=True, text=True,
                                     timeout=90, check=False)
-        except (OSError, subprocess.TimeoutExpired) as exc:
-            raise RuntimeError(f"Chromium 渲染失败：{exc}") from exc
-        match = RESULT_PATTERN.search(result.stdout)
-        if result.returncode or not match:
+        except subprocess.TimeoutExpired as exc:
+            raise RuntimeError(
+                f"浏览器 {browser} 在 90 秒内没有返回 DOM；"
+                "可用 DRAWIO_CHROMIUM 指向 chrome-headless-shell"
+            ) from exc
+        except OSError as exc:
+            raise RuntimeError(f"无法启动浏览器 {browser}：{exc}") from exc
+        if result.returncode:
             detail = result.stderr.strip()[-500:]
-            raise RuntimeError(f"官方 viewer 未生成 SVG（Chromium {result.returncode}）：{detail}")
+            raise RuntimeError(f"浏览器 {browser} 退出码 {result.returncode}；{detail}")
+        if not result.stdout.strip():
+            raise RuntimeError(
+                f"浏览器 {browser} 已退出但没有输出 DOM；"
+                "请检查 --dump-dom 支持情况，或用 DRAWIO_CHROMIUM 指向 chrome-headless-shell"
+            )
+        match = RESULT_PATTERN.search(result.stdout)
+        if not match:
+            detail = result.stderr.strip()[-500:]
+            raise RuntimeError(f"官方 viewer 未生成 SVG（浏览器 {browser} 已输出 DOM）：{detail}")
         rendered = base64.b64decode(match.group(1), validate=True)
         validate_svg(rendered)
         svg.parent.mkdir(parents=True, exist_ok=True)

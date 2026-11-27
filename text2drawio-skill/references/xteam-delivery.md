@@ -21,7 +21,7 @@ curl -f http://127.0.0.1:7777/diagram.html
 
 端口在 5555、6666、7777、8888 中选空闲的一个。服务进程不是持久的；预览卡失效时在同一持久目录重启服务。`embed.diagrams.net` 需要在用户浏览器可访问；若 XTeam 浏览器限制此域名，预览与下载仍可使用，编辑入口需平台放行或改接可用的 draw.io 域名。
 
-XTeam 的 Chromium 通常在 `/opt/ms-playwright/chromium-1234/chrome-linux64/chrome`。脚本自动探测；若路径变动，设置 `DRAWIO_CHROMIUM`。PNG 自检沿用 `scripts/export_png.py`，在没有 draw.io CLI 时用同一官方 viewer 和 Chromium 截图。首次构建需要沙箱能访问 `viewer.diagrams.net`；生成后的 SVG 预览由本地服务提供。
+XTeam 反馈其 headless shell 路径为 `/opt/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell`，完整版 Chrome 路径为 `/opt/ms-playwright/chromium-1234/chrome-linux64/chrome`。脚本在这两个固定路径中优先选 headless shell；若路径变动，设置 `DRAWIO_CHROMIUM`。XTeam 此次实测中，完整版 Chrome 的 `--dump-dom` 等待 90 秒后超时，headless shell 首次约 10 秒、后续约 3 秒出图；这是该沙箱的观测，不代表所有 Chromium 环境。PNG 自检沿用 `scripts/export_png.py`，在没有 draw.io CLI 时用同一官方 viewer 和 Chromium 截图。首次构建需要沙箱能访问 `viewer.diagrams.net`；生成后的 SVG 预览由本地服务提供。
 
 服务确认可达后，按 XTeam 当前支持的预览卡协议输出 `wakeapp-app-preview` 代码块，`port` 填实际端口、`route` 填 URL 编码的 HTML 路径。平台材料中出现过 `wakerapp-app-preview` 与 `wakeapp-app-preview` 两种拼写，发布前在 XTeam 环境核对实际解析格式。给出 `.drawio` 会话文件下载入口；不要把静态 CDN 链接当作写回 API。
 
