@@ -12,6 +12,7 @@
 
 | 时间 | 类型 | 修改项与验证 | 提交 |
 | --- | --- | --- | --- |
+| 2026-11-27 18:59 | `perf` | 根据 XTeam 分段计时，将常规生图流程改为 `build_preview.py --review-png` 一次生成 SVG 并从同一 SVG 截图复核，省去原先独立 PNG 导出后的第二次官方 viewer 渲染；保留每轮 PNG 视觉检查与最多两轮自动修复。新增简短泳道速查，常规需求只读速查，复杂布局再读完整参考。模拟无 draw.io CLI 的路径已生成 SVG/PNG/HTML 并目视检查 PNG；装有 CLI 的路径也通过，Python 语法及 Git diff 检查通过。XTeam 实际节省时间待平台复测；未加入忽略证书错误的包装脚本。 | `perf(skill): reuse SVG for PNG review` |
 | 2026-11-27 18:40 | `fix` | 处理 XTeam 新安装版本中 `styles/` 被设为 root:root、权限 `000` 的反馈：移除技能包内不必要的 `styles/` 目录，自动布局改用与旧七个预设角色完全相同的内置黑白配色；新增可重复使用的 ZIP 打包脚本，显式记录剩余目录权限 `0755`。解包后确认没有 `styles/`、目录均可读，并从解包目录运行泳道规范检查和 HTML/SVG 预览构建成功；Python 语法及 Git diff 检查通过。XTeam 安装器是否遵循 ZIP 权限仍需平台复测。 | `fix(skill): remove unreadable styles dependency` |
 | 2026-11-27 17:33 | `fix` | 为 `text2drawio-skill` 增加泳道无缝相邻、近水平/竖直连线端口对齐的确定性检查与保守修正；构建预览前自动执行并阻止未修复的规范问题交付。扩展左侧泳道宽度填缝，不移动节点或折点；仅对无折点且小幅错位的正交连线补齐/校准端口，非矩形端点固定在边侧中点。用京小贝原图构造 15px 泳道间隙、12px 水平错位及 6px 竖直错位：修正后规范检查 0 项、结构校验 0 项，SVG 路径为单段水平/竖直线；原图无需修正且输出未改变，Python 语法与 Git diff 检查通过。截图对应原始 `.drawio` 未提供，仍需在 XTeam 用实际失败文件复测。 | `fix(skill): normalize swimlane gaps and straight edges` |
 | 2026-11-27 15:38 | `fix` | 根据 XTeam 沙箱反馈，在 Chromium 候选链加入 PATH 和固定路径的 `chrome-headless-shell`，并在该沙箱固定路径中优先于完整版 Chrome；分别诊断渲染超时、进程启动失败、零 DOM 输出和 viewer 未生成 SVG。更新技能与交付说明，不改 HTML 编辑器。候选优先级模拟、错误分支模拟、Python 语法及本机实际 SVG 导出通过；XTeam 指定路径仍需在平台复测。 | `fix(skill): prefer XTeam headless shell for rendering` |

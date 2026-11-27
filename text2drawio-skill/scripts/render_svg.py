@@ -95,6 +95,40 @@ def svg_size(svg: bytes) -> tuple[float, float]:
     return width, height
 
 
+def screenshot_svg(svg: Path, png: Path, chromium: str | None = None,
+                   png_width: int = 2000) -> None:
+    """Capture an existing SVG without loading the remote viewer again."""
+    browser = resolve_chromium(chromium)
+    if not browser:
+        raise RuntimeError("未找到 Chromium；可设置 DRAWIO_CHROMIUM 或传 --chromium")
+    if png_width < 1:
+        raise ValueError("PNG 宽度必须为正数")
+    width, height = svg_size(svg.read_bytes())
+    target_height = math.ceil(png_width * height / width)
+    if target_height > 12000:
+        raise RuntimeError("PNG 高度超过 Chromium 截图限制；请调小 --width")
+    with tempfile.TemporaryDirectory(prefix="text2drawio-screenshot-") as temporary:
+        work = Path(temporary)
+        screenshot = work / "screenshot.html"
+        screenshot.write_text(
+            '<!doctype html><html><head><meta charset="utf-8"><style>'
+            'html,body{margin:0;padding:0;background:white;overflow:hidden}'
+            f'img{{display:block;width:{png_width}px;height:{target_height}px}}'
+            '</style></head><body>'
+            f'<img src="{svg.resolve().as_uri()}"></body></html>', encoding="utf-8")
+        png.parent.mkdir(parents=True, exist_ok=True)
+        command = chrome_args(browser, work / "profile") + [
+            f"--window-size={png_width},{target_height}",
+            f"--screenshot={png.resolve()}", screenshot.as_uri()]
+        try:
+            shot = subprocess.run(command, capture_output=True, text=True,
+                                  timeout=60, check=False)
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            raise RuntimeError(f"Chromium PNG 截图失败：{exc}") from exc
+        if shot.returncode or not png.is_file() or not png.stat().st_size:
+            raise RuntimeError(f"Chromium PNG 截图失败：{shot.stderr.strip()[-500:]}")
+
+
 def render(drawio: Path, svg: Path, chromium: str | None = None,
            png: Path | None = None, png_width: int = 2000) -> None:
     from preview_files import validate_svg, validate_xml
@@ -139,28 +173,7 @@ def render(drawio: Path, svg: Path, chromium: str | None = None,
         svg.parent.mkdir(parents=True, exist_ok=True)
         svg.write_bytes(rendered)
         if png is not None:
-            width, height = svg_size(rendered)
-            target_height = math.ceil(png_width * height / width)
-            if target_height > 12000:
-                raise RuntimeError("PNG 高度超过 Chromium 截图限制；请调小 --width")
-            screenshot = work / "screenshot.html"
-            screenshot.write_text(
-                '<!doctype html><html><head><meta charset="utf-8"><style>'
-                'html,body{margin:0;padding:0;background:white;overflow:hidden}'
-                f'img{{display:block;width:{png_width}px;height:{target_height}px}}'
-                '</style></head><body>'
-                f'<img src="{svg.resolve().as_uri()}"></body></html>', encoding="utf-8")
-            png.parent.mkdir(parents=True, exist_ok=True)
-            screenshot_command = chrome_args(browser, work / "screenshot-profile") + [
-                f"--window-size={png_width},{target_height}",
-                f"--screenshot={png.resolve()}", screenshot.as_uri()]
-            try:
-                shot = subprocess.run(screenshot_command, capture_output=True, text=True,
-                                      timeout=60, check=False)
-            except (OSError, subprocess.TimeoutExpired) as exc:
-                raise RuntimeError(f"Chromium PNG 截图失败：{exc}") from exc
-            if shot.returncode or not png.is_file() or not png.stat().st_size:
-                raise RuntimeError(f"Chromium PNG 截图失败：{shot.stderr.strip()[-500:]}")
+            screenshot_svg(svg, png, browser, png_width)
 
 
 def main() -> int:

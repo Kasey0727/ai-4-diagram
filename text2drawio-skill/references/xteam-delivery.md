@@ -13,7 +13,7 @@
 
 ## 沙箱运行
 
-将输出目录放在 XTeam 的会话工作区持久盘。先运行 `build_preview.py`，确认三个交付文件都已存在。预览与写回必须由同一个 HTTP 服务提供，不能使用只支持 GET 的 `python3 -m http.server`。
+将输出目录放在 XTeam 的会话工作区持久盘。生成时运行 `build_preview.py --review-png`，它从同一次渲染得到 SVG 和复核 PNG；确认 `.drawio`、SVG、PNG、HTML 都已存在。预览与写回必须由同一个 HTTP 服务提供，不能使用只支持 GET 的 `python3 -m http.server`。
 
 ```bash
 python3 scripts/preview_server.py \
